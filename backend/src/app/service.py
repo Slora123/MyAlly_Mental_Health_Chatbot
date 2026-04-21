@@ -32,7 +32,7 @@ load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 DB_PATH = str((
-    __import__("pathlib").Path(__file__).resolve().parents[2] / "chroma_db"
+    __import__("pathlib").Path(__file__).resolve().parents[3] / "database" / "chroma_db"
 ))
 EMPATHY_COLLECTION_NAME = "student_support_empathy"
 KNOWLEDGE_COLLECTION_NAME = "student_support_knowledge"

@@ -17,8 +17,8 @@ from src.app.service import chat_logic
 
 app = FastAPI(title="MyAlly Mental-Health Support")
 
-# Serve everything inside /static
-_STATIC_DIR = Path(__file__).resolve().parents[2] / "static"
+# Serve everything inside frontend/dist
+_STATIC_DIR = Path(__file__).resolve().parents[3] / "frontend" / "dist"
 app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 

@@ -18,7 +18,7 @@ import datetime
 import json
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parents[3]
 LOG_FILE = BASE_DIR / "rag_reference_logs.jsonl"
 
 

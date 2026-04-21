@@ -1,0 +1,220 @@
+/* ═══════════════════════════════════════════════
+   MyAlly Global Design System — index.css
+   ═══════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─────────────── THEME TOKENS ─────────────── */
+:root {
+  --theme-transition: background 0.9s ease, color 0.5s ease;
+}
+
+/* Calm Light (default) */
+body.theme-calm {
+  --bg-1: #ffdfcd;
+  --bg-2: #ffced7;
+  --bg-3: #ffe3d5;
+  --bg-base: #fbf1ec;
+  --glass-panel-bg: rgba(255,255,255,0.32);
+  --glass-panel-border: rgba(255,255,255,0.72);
+  --user-bubble: linear-gradient(140deg, #f27c65, #fb9a7c);
+  --bot-bubble: rgba(255,255,255,0.88);
+  --bot-border: rgba(0,0,0,0.04);
+  --input-bg: rgba(255,255,255,0.55);
+  --input-border: rgba(255,255,255,0.82);
+  --input-focus: rgba(242,124,101,0.55);
+  --send-bg: linear-gradient(140deg, #f27c65, #fb9a7c);
+  --send-glow: rgba(242,124,101,0.45);
+  --text: #4a3e3d;
+  --text-muted: #9e8e8c;
+  --bot-text: #4a3e3d;
+  --time-color: rgba(0,0,0,0.32);
+  --user-time: rgba(255,255,255,0.82);
+  --avatar-bot: linear-gradient(140deg, #f27c65, #fb9a7c);
+  --avatar-user: linear-gradient(140deg, #5d4037, #3e2723);
+  --chip-bg: rgba(242,124,101,0.12);
+  --chip-border: rgba(242,124,101,0.28);
+  --chip-text: #d85c45;
+  --date-sep-bg: rgba(0,0,0,0.06);
+  --date-sep-text: rgba(0,0,0,0.45);
+  --accent: #f27c65;
+  --online-dot: #22c55e;
+  --scrollbar-thumb: rgba(200,140,120,0.3);
+}
+
+/* Bad Mood */
+body.theme-angry {
+  --bg-1: #520b09;
+  --bg-2: #300609;
+  --bg-3: #400404;
+  --bg-base: #170505;
+  --glass-panel-bg: rgba(25,4,4,0.52);
+  --glass-panel-border: rgba(255,60,60,0.18);
+  --user-bubble: linear-gradient(140deg, #fd4635, #e02f23);
+  --bot-bubble: rgba(20,5,5,0.62);
+  --bot-border: rgba(255,255,255,0.07);
+  --input-bg: rgba(28,6,6,0.52);
+  --input-border: rgba(255,255,255,0.09);
+  --input-focus: rgba(253,70,53,0.62);
+  --send-bg: linear-gradient(140deg, #fd4635, #e02f23);
+  --send-glow: rgba(253,70,53,0.55);
+  --text: #ffd6d4;
+  --text-muted: #c99391;
+  --bot-text: #ffd6d4;
+  --time-color: rgba(255,255,255,0.35);
+  --user-time: rgba(255,255,255,0.82);
+  --avatar-bot: linear-gradient(140deg, #fd4635, #e02f23);
+  --avatar-user: linear-gradient(140deg, #4a1a1a, #2d0a0a);
+  --chip-bg: rgba(253,70,53,0.16);
+  --chip-border: rgba(253,70,53,0.32);
+  --chip-text: #ffaa99;
+  --date-sep-bg: rgba(255,255,255,0.06);
+  --date-sep-text: rgba(255,255,255,0.4);
+  --accent: #fd4635;
+  --online-dot: #ff6b6b;
+  --scrollbar-thumb: rgba(253,70,53,0.3);
+}
+
+/* Soft Pink (happy) */
+body.theme-happy {
+  --bg-1: #ffe0f0;
+  --bg-2: #ffabc7;
+  --bg-3: #ffd4e5;
+  --bg-base: #fce8f2;
+  --glass-panel-bg: rgba(255,255,255,0.4);
+  --glass-panel-border: rgba(255,255,255,0.78);
+  --user-bubble: linear-gradient(140deg, #ff609a, #e7467e);
+  --bot-bubble: rgba(255,255,255,0.88);
+  --bot-border: rgba(0,0,0,0.03);
+  --input-bg: rgba(255,255,255,0.62);
+  --input-border: rgba(255,255,255,0.92);
+  --input-focus: rgba(255,96,154,0.52);
+  --send-bg: linear-gradient(140deg, #ff609a, #e7467e);
+  --send-glow: rgba(255,96,154,0.45);
+  --text: #5c203b;
+  --text-muted: #a8728a;
+  --bot-text: #5c203b;
+  --time-color: rgba(0,0,0,0.32);
+  --user-time: rgba(255,255,255,0.92);
+  --avatar-bot: linear-gradient(140deg, #ff609a, #e7467e);
+  --avatar-user: linear-gradient(140deg, #880e4f, #560027);
+  --chip-bg: rgba(255,96,154,0.12);
+  --chip-border: rgba(255,96,154,0.28);
+  --chip-text: #d81b60;
+  --date-sep-bg: rgba(0,0,0,0.05);
+  --date-sep-text: rgba(0,0,0,0.42);
+  --accent: #ff609a;
+  --online-dot: #22c55e;
+  --scrollbar-thumb: rgba(255,96,154,0.3);
+}
+
+/* Dark Night (sad/late) */
+body.theme-night {
+  --bg-1: #20113f;
+  --bg-2: #2b114d;
+  --bg-3: #15092a;
+  --bg-base: #0b0616;
+  --glass-panel-bg: rgba(12,6,28,0.52);
+  --glass-panel-border: rgba(139,92,246,0.22);
+  --user-bubble: linear-gradient(140deg, #aa5af5, #8537d8);
+  --bot-bubble: rgba(18,8,40,0.62);
+  --bot-border: rgba(255,255,255,0.06);
+  --input-bg: rgba(28,18,50,0.52);
+  --input-border: rgba(255,255,255,0.11);
+  --input-focus: rgba(170,90,245,0.52);
+  --send-bg: linear-gradient(140deg, #aa5af5, #8537d8);
+  --send-glow: rgba(170,90,245,0.5);
+  --text: #eadeff;
+  --text-muted: #a38fcc;
+  --bot-text: #eadeff;
+  --time-color: rgba(255,255,255,0.35);
+  --user-time: rgba(255,255,255,0.82);
+  --avatar-bot: linear-gradient(140deg, #aa5af5, #8537d8);
+  --avatar-user: linear-gradient(140deg, #311b92, #1a0a5e);
+  --chip-bg: rgba(170,90,245,0.16);
+  --chip-border: rgba(170,90,245,0.32);
+  --chip-text: #dcb3ff;
+  --date-sep-bg: rgba(255,255,255,0.07);
+  --date-sep-text: rgba(255,255,255,0.4);
+  --accent: #aa5af5;
+  --online-dot: #a78bfa;
+  --scrollbar-thumb: rgba(170,90,245,0.3);
+}
+
+/* ─────────────── BASE ─────────────── */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+  background:
+    radial-gradient(circle at 10% 10%, var(--bg-1) 0%, transparent 50%),
+    radial-gradient(circle at 90% 40%, var(--bg-2) 0%, transparent 50%),
+    radial-gradient(circle at 50% 90%, var(--bg-3) 0%, transparent 60%),
+    var(--bg-base);
+  background-attachment: fixed;
+  transition: var(--theme-transition);
+  overflow: hidden;
+}
+
+/* ─────────────── SCROLLBAR ─────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 10px;
+}
+
+/* ─────────────── KEYFRAMES ─────────────── */
+@keyframes float-avatar {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-5px) scale(1.06); }
+}
+
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; transform: scale(0.85); }
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%            { transform: translateY(-6px); }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 var(--send-glow); }
+  70%  { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes welcome-in {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─────────────── GLASS CARD utility ─────────────── */
+.glass {
+  background: var(--glass-panel-bg);
+  backdrop-filter: blur(44px) saturate(180%);
+  -webkit-backdrop-filter: blur(44px) saturate(180%);
+  border: 1px solid var(--glass-panel-border);
+  border-radius: 26px;
+}

@@ -23,7 +23,7 @@ from pathlib import Path
 
 import pandas as pd
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parents[3] / "database"
 PROCESSED_DIR = BASE_DIR / "data" / "processed"
 OUTPUT_PATH = PROCESSED_DIR / "empathy_documents.jsonl"
 

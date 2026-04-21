@@ -15,7 +15,11 @@ Usage:
 """
 
 import datetime
+import sys
 from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+sys.path.append(str(BASE_DIR.parent / "backend"))
 
 import chromadb
 
@@ -24,7 +28,6 @@ from src.data_prep.build_knowledge_docs import build_all as build_knowledge_docs
 from src.rag.embeddings import get_embedding_function
 from src.rag.index_builder import rebuild_collection, save_jsonl, upsert_documents
 
-BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "chroma_db"
 PROCESSED_DIR = BASE_DIR / "data" / "processed"
 EMPATHY_COLLECTION_NAME = "student_support_empathy"
