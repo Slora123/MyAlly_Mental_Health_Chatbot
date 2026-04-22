@@ -26,7 +26,9 @@ from src.app import logging as app_logging
 from src.rag import retriever, prompt_builder, router, safety
 from src.rag.embeddings import get_embedding_function
 
-load_dotenv()
+from pathlib import Path
+root_env = Path(__file__).resolve().parents[3] / ".env"
+load_dotenv(dotenv_path=root_env)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
@@ -94,7 +96,7 @@ _CRISIS_REPLY = (
 
 # ── Main chat logic ───────────────────────────────────────────────────────────
 
-def chat_logic(user_message: str, history: list) -> str:
+def chat_logic(user_message: str, history: list, user_profile=None) -> str:
     """
     Full RAG pipeline entry-point consumed by the Gradio ChatInterface.
 
@@ -102,6 +104,7 @@ def chat_logic(user_message: str, history: list) -> str:
     ----------
     user_message : The student's current message.
     history      : Gradio conversation history.
+    user_profile : The user's database profile object.
 
     Returns
     -------
@@ -119,19 +122,34 @@ def chat_logic(user_message: str, history: list) -> str:
     intent = router.classify_intent(user_message)
 
     if not is_safe or intent == "high_risk":
-        app_logging.append_log(
-            app_logging.make_log_entry(
-                user_query=user_message,
-                ai_response=_CRISIS_REPLY,
-                intent="high_risk",
-                retrieved_empathy_ids=[],
-                retrieved_knowledge_ids=[],
-                retrieved_empathy_metadata=[],
-                retrieved_knowledge_metadata=[],
-                mode="crisis",
+        client = _get_client()
+        is_genuine, summary = safety.evaluate_crisis_severity(client, user_message, history)
+        
+        if is_genuine:
+            from src.app import counselor_service
+            name = getattr(user_profile, 'name', "Unknown User") if user_profile else "Unknown User"
+            email = getattr(user_profile, 'email', "No email") if user_profile else "No email"
+            user_info = f"{name} (Email: {email})"
+            counselor_service.save_crisis_alert(summary, user_info=user_info, history=history)
+            
+            app_logging.append_log(
+                app_logging.make_log_entry(
+                    user_query=user_message,
+                    ai_response=_CRISIS_REPLY,
+                    intent="high_risk",
+                    retrieved_empathy_ids=[],
+                    retrieved_knowledge_ids=[],
+                    retrieved_empathy_metadata=[],
+                    retrieved_knowledge_metadata=[],
+                    mode="crisis_escalated",
+                )
             )
-        )
-        return _CRISIS_REPLY
+            return _CRISIS_REPLY
+        else:
+            # The LLM evaluated this as 'playing' or not genuinely dangerous.
+            # We override the high-risk block and proceed normally as "support_only".
+            is_safe = True
+            intent = "support_only"
 
     # ── Step 2: Retrieval ─────────────────────────────────────────────────────
     empathy_items = retriever.retrieve_empathy_examples(empathy_col, user_message)
@@ -147,7 +165,7 @@ def chat_logic(user_message: str, history: list) -> str:
     empathy_ctx = retriever.render_empathy_context(empathy_items)
     knowledge_ctx = retriever.render_knowledge_context(knowledge_items)
     messages = prompt_builder.build_messages(
-        user_message, history, empathy_ctx, knowledge_ctx
+        user_message, history, empathy_ctx, knowledge_ctx, user_profile
     )
 
     # ── Step 4: Generation ────────────────────────────────────────────────────

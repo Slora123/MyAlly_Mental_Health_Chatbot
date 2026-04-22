@@ -1,7 +1,5 @@
 Cloud Deployment
 
-React.js or Next.js
-
 Supabase/postgresql for user db of chat (history)
 
 user auth

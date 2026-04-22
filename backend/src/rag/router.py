@@ -20,6 +20,7 @@ _CRISIS_PHRASES: frozenset[str] = frozenset(
         "end my life",
         "suicide",
         "suicidal",
+        "suiciding",
         "self harm",
         "harm myself",
         "cut myself",
@@ -32,7 +33,10 @@ _CRISIS_PHRASES: frozenset[str] = frozenset(
         "cannot keep going",
         "no reason to live",
         "thinking about ending",
+        "ending everything",
         "hurt myself",
+        "take my own life",
+        "end it all"
     }
 )
 

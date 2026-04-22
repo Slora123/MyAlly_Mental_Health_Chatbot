@@ -56,6 +56,7 @@ def build_messages(
     history: list,
     empathy_context: str,
     knowledge_context: str,
+    user_profile=None
 ) -> list[dict]:
     """
     Assemble the full message list for the LLM.
@@ -66,12 +67,26 @@ def build_messages(
     history           : Gradio chat history (list of dicts or tuples).
     empathy_context   : Pre-rendered empathy examples string.
     knowledge_context : Pre-rendered knowledge snippets string.
+    user_profile      : The user's database profile (optional).
 
     Returns
     -------
     List of role-based message dicts (system + user).
     """
     recent_history = _format_recent_history(history)
+    
+    dynamic_system_prompt = SYSTEM_PROMPT
+    if user_profile:
+        name = getattr(user_profile, 'nickname', None) or getattr(user_profile, 'name', None) or "Anonymous"
+        profile_info = f"\n\n--- USER PROFILE CONTEXT ---\n- Name/Nickname: {name}\n"
+        if getattr(user_profile, 'gender', None): profile_info += f"- Gender: {user_profile.gender}\n"
+        if getattr(user_profile, 'preferred_tone', None): profile_info += f"- Preferred Tone: {user_profile.preferred_tone}\n"
+        if getattr(user_profile, 'support_style', None): profile_info += f"- Support Style: {user_profile.support_style}\n"
+        if getattr(user_profile, 'lifestyle_patterns', None): profile_info += f"- Lifestyle Patterns: {user_profile.lifestyle_patterns}\n"
+        if getattr(user_profile, 'support_network', None): profile_info += f"- Support Network: {user_profile.support_network}\n"
+        if getattr(user_profile, 'education', None): profile_info += f"- Education: {user_profile.education}\n"
+        profile_info += "Use this information to deeply personalize your responses. Match their preferred tone and consider their lifestyle and support network when offering advice or comfort. Do NOT mention you are reading a profile.\n"
+        dynamic_system_prompt += profile_info
 
     user_prompt = f"""\
 Here's the conversation so far:
@@ -88,6 +103,6 @@ Reply as MyAlly — genuinely, casually, and in the moment. Match their energy. 
 """
 
     return [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": dynamic_system_prompt},
         {"role": "user", "content": user_prompt},
     ]

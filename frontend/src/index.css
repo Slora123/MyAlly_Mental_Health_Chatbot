@@ -218,3 +218,83 @@ body {
   border: 1px solid var(--glass-panel-border);
   border-radius: 26px;
 }
+
+/* ─────────────── REGISTRATION FORM ─────────────── */
+.reg-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  animation: welcome-in 0.8s ease-out;
+}
+
+.reg-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  text-align: center;
+}
+
+.reg-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.reg-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 32px;
+  font-size: 15px;
+}
+
+.reg-input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.reg-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  margin-left: 12px;
+}
+
+.reg-input {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 18px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.reg-input:focus {
+  border-color: var(--input-focus);
+}
+
+.reg-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  border: none;
+  background: var(--send-bg);
+  color: white;
+  font-weight: 700;
+  font-size: 17px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px var(--send-glow);
+  transition: transform 0.2s;
+}
+
+.reg-btn:active {
+  transform: scale(0.98);
+}

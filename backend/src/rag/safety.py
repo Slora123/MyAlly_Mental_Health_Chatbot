@@ -148,3 +148,49 @@ def check_post_generation(reply: str) -> tuple[bool, list[str]]:
         issues.append("certainty_overclaiming_detected")
 
     return (len(issues) == 0), issues
+
+
+def evaluate_crisis_severity(client, user_message: str, history: list) -> tuple[bool, str]:
+    """
+    Uses the provided LLM client to evaluate if the high-risk message constitutes
+    a genuine and continuous crisis vs 'playing around'.
+    
+    Returns
+    -------
+    (is_genuine_crisis: bool, summary: str)
+    """
+    system_prompt = (
+        "You are a crisis evaluation system. A user has triggered a high-risk keyword. "
+        "Review their recent chat history and the latest message.\n"
+        "1) If the user is genuinely expressing persistent or continuous extreme stress or suicidal intent, "
+        "reply with 'ESCALATE', followed by double newline, followed by a short 2-3 sentence summary of the crisis directly quoting the user context.\n"
+        "2) If the user appears to be joking, playing around, testing the bot, or not in genuine extreme distress, "
+        "reply with 'IGNORE'.\n"
+    )
+    
+    history_text = ""
+    if history:
+        history_text = "\n".join([f"User: {u}\nBot: {b}" for u, b in history[-4:]])  # Look at last 4 turns
+        
+    user_prompt = f"Chat History:\n{history_text}\nLatest Message: {user_message}\nEvaluate now."
+    
+    try:
+        response = client.chat_completion(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=150,
+            temperature=0.0
+        )
+        reply = response.choices[0].message.content.strip()
+        if reply.startswith("ESCALATE"):
+            parts = reply.split("\n\n", 1)
+            summary = parts[1] if len(parts) > 1 else f"User expressed intent to self-harm: {user_message}"
+            return True, summary.strip()
+        else:
+            return False, ""
+    except Exception as e:
+        print(f"Error evaluating crisis: {e}")
+        # Default to safe side if LLM evaluation fails
+        return True, f"Possible crisis detected (LLM check failed). User said: {user_message}"

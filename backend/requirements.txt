@@ -6,3 +6,7 @@ sentence-transformers
 torch
 python-dotenv
 pandas
+requests
+firebase-admin
+sqlalchemy
+psycopg2-binary
