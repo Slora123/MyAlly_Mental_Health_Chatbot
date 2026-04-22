@@ -84,29 +84,25 @@ export default function CounselorDashboard() {
             </section>
 
             <section className="detail-section">
+              <h3>Trigger Message</h3>
+              <div className="trigger-box glass">
+                " {selectedAlert.trigger_message} "
+              </div>
+            </section>
+
+            <section className="detail-section">
               <h3>AI Assessment Summary</h3>
               <div className="summary-box">
                 {selectedAlert.summary}
               </div>
             </section>
 
-            <section className="detail-section history-section">
-              <h3>Conversation Context</h3>
-              <div className="history-feed">
-                {selectedAlert.history.map((turn, i) => (
-                  <div key={i} className="history-turn">
-                    {turn[0] && <div className="turn user"><strong>Student:</strong> {turn[0]}</div>}
-                    {turn[1] && <div className="turn bot"><strong>AI:</strong> {turn[1]}</div>}
-                  </div>
-                ))}
-              </div>
-            </section>
           </div>
         ) : (
           <div className="placeholder glass">
             <img src="https://img.icons8.com/clouds/200/protection-mask.png" alt="Safety" />
             <h2>Safety First</h2>
-            <p>Select an alert from the sidebar to view full conversation history and risk assessment.</p>
+            <p>Select an alert from the sidebar to view the risk assessment and contact details.</p>
           </div>
         )}
       </div>

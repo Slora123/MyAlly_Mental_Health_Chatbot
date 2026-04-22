@@ -249,15 +249,23 @@
   letter-spacing: -0.5px;
 }
 
-.summary-box {
-  background: white;
+.summary-box, .trigger-box {
+  background: rgba(255, 255, 255, 0.45);
   padding: 30px;
-  border-radius: 24px;
+  border-radius: 28px;
   line-height: 1.8;
-  color: #334155;
+  color: #1e293b;
   border-left: 8px solid #fd1d1d;
   font-size: 1.15rem;
   box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  margin-bottom: 30px;
+}
+
+.trigger-box {
+  font-style: italic;
+  font-weight: 800;
+  border-left-color: #fcb045;
+  color: #0f172a;
 }
 
 .history-section {

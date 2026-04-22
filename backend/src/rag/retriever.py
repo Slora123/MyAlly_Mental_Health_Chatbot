@@ -93,13 +93,14 @@ def _rerank_empathy(candidates: list[dict], top_n: int = 3) -> list[dict]:
 def retrieve_empathy_examples(
     collection: chromadb.Collection,
     user_message: str,
+    top_n: int = 3
 ) -> list[dict]:
     """
-    Step 9.2: Query the empathy collection with top-k=6, then rerank to top 3.
+    Step 9.2: Query the empathy collection with top-k=6, then rerank to top_n.
     Always called for support-only and mixed messages.
     """
     candidates = query_collection(collection, user_message, n_results=6)
-    return _rerank_empathy(candidates, top_n=3)
+    return _rerank_empathy(candidates, top_n=top_n)
 
 
 def retrieve_knowledge_snippets(

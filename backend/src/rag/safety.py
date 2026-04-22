@@ -180,7 +180,7 @@ def evaluate_crisis_severity(client, user_message: str, history: list) -> tuple[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=150,
+            max_tokens=60, # Reduced from 150 for much faster classification
             temperature=0.0
         )
         reply = response.choices[0].message.content.strip()

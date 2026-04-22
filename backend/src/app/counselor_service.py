@@ -20,15 +20,15 @@ def _ensure_db_exists():
         with open(ALERTS_FILE, "w", encoding="utf-8") as f:
             json.dump([], f)
 
-def save_crisis_alert(summary: str, user_info: str, history: list):
+def save_crisis_alert(summary: str, user_info: str, trigger_message: str):
     """
     Saves a crisis alert to the internal JSON database.
     
     Parameters
     ----------
-    summary   : The AI-generated crisis summary.
-    user_info : The user's name and contact details.
-    history   : The chat history at the time of crisis.
+    summary         : The AI-generated crisis summary.
+    user_info       : The user's name and contact details.
+    trigger_message : The specific user message that triggered the alert.
     """
     _ensure_db_exists()
     
@@ -37,7 +37,7 @@ def save_crisis_alert(summary: str, user_info: str, history: list):
         "timestamp": datetime.now().isoformat(),
         "user_info": user_info,
         "summary": summary,
-        "history": history,
+        "trigger_message": trigger_message,
         "status": "unread", # read, unread, resolved
         "severity": "high_risk"
     }

@@ -38,7 +38,8 @@ export const MOOD_RULES = [
     keywords: [
       'angry', 'anger', 'hate', 'frustrated', 'irritated', 'furious',
       'worst', 'horrible', 'everything is wrong', 'so mad', 'pissed',
-      'annoyed', 'rage', 'so angry', 'gussa', 'bahut gussa',
+      'annoyed', 'rage', 'so angry', 'gussa', 'bahut gussa', 'trast',
+      'dimag kharab', 'irritate', 'bakwas', 'bad mood', 'sick of',
     ],
   },
   {
@@ -47,7 +48,8 @@ export const MOOD_RULES = [
       'happy', 'joyful', 'amazing', 'great', 'fantastic', 'so happy',
       'passed', 'won', 'excited', 'yay', 'celebrate', 'love it',
       'wonderful', 'thrilled', 'khush', 'mast', 'badiya', 'awesome',
-      'flying colors',
+      'flying colors', 'excited', 'best day', 'feeling good', 'maza',
+      'happy today', 'good news',
     ],
   },
   {
@@ -56,7 +58,10 @@ export const MOOD_RULES = [
       'lonely', "can't sleep", 'can not sleep', 'late night', 'night',
       'wandering', 'overthinking', 'hopeless', 'numb', 'lost', 'emptiness',
       'midnight', '2am', '3am', 'raat', 'neend nahi', 'what if thoughts',
-      'sad', 'depressed', 'depression',
+      'sad', 'depressed', 'depression', 'suicide', 'suiciding', 'kill myself',
+      'end it', 'die', 'death', 'hurt myself', 'too much', 'cant go on',
+      'cannot go on', 'akelapan', 'dard', 'rone ka man', 'dukh',
+      'life is hard', 'give up', 'suicidal', 'ending it',
     ],
   },
 ];

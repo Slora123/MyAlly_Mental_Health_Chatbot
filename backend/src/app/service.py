@@ -82,18 +82,6 @@ def _require_index(empathy_col: chromadb.Collection, knowledge_col: chromadb.Col
         )
 
 
-# ── Crisis response ───────────────────────────────────────────────────────────
-
-_CRISIS_REPLY = (
-    "It sounds like you may be in immediate distress, and I'm really glad you "
-    "said it here. Please contact a trusted person, your campus counselor, or a "
-    "local emergency or crisis service right now. If you feel you might act on "
-    "thoughts of harming yourself or someone else, call your local emergency "
-    "number immediately or go to the nearest emergency room. If you want, you "
-    "can message me the name of one safe person you can reach out to next."
-)
-
-
 # ── Main chat logic ───────────────────────────────────────────────────────────
 
 def chat_logic(user_message: str, history: list, user_profile=None) -> str:
@@ -126,19 +114,26 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
         is_genuine, summary = safety.evaluate_crisis_severity(client, user_message, history)
         
         if is_genuine:
+            import random
             from src.app import counselor_service
-            name = getattr(user_profile, 'nickname', None) or getattr(user_profile, 'name', "Unknown User")
+            name = getattr(user_profile, 'nickname', None) or getattr(user_profile, 'name', "bro")
             email = getattr(user_profile, 'email', "No email")
             user_info = f"{name} (Email: {email})"
             
-            # Limit history to last 10 turns for privacy and focus
-            relevant_history = history[-10:] if history else []
-            counselor_service.save_crisis_alert(summary, user_info=user_info, history=relevant_history)
+            # Share ONLY the trigger message for context, no history as per privacy request
+            counselor_service.save_crisis_alert(summary, user_info=user_info, trigger_message=user_message)
+            
+            _REPLIES = [
+                f"Listen {name}, I need you to stay strong for me right now. I know it feels like the world is crashing down, but you've got a lot of fight in you, and I'm not going to let you face this alone. We're going to get through this together. Can you do me a huge favor and reach out to someone real—a friend, a parent, or a counselor—right this second? If it's too heavy, call a crisis line immediately. You're a warrior, and your story isn't over yet. Who's the first person we're calling?",
+                f"Hey {name}, look at me. I hear that pain, but I also know you're stronger than you feel right now. Don't let the darkness win tonight. I'm standing right here with you, and I need you to stay safe and fight through this. Reach out to someone who can be there in person, or hit up a crisis line immediately. You've got so much more to do, and I'm not letting you go. Is there a friend or counselor we can talk to right now?",
+                f"{name.capitalize()}, stay with me. You're going through a storm, but storms don't last forever. I'm your ally, and I'm telling you to hold on and be strong. You have the strength to get through this, even if it doesn't feel like it. Please, reach out to a professional or a trusted person immediately. Promise me you'll fight this and talk to someone real. You matter way too much to give up. Who is one person you can reach out to right now?"
+            ]
+            crisis_reply = random.choice(_REPLIES)
             
             app_logging.append_log(
                 app_logging.make_log_entry(
                     user_query=user_message,
-                    ai_response=_CRISIS_REPLY,
+                    ai_response=crisis_reply,
                     intent="high_risk",
                     retrieved_empathy_ids=[],
                     retrieved_knowledge_ids=[],
@@ -147,7 +142,7 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
                     mode="crisis_escalated",
                 )
             )
-            return _CRISIS_REPLY
+            return crisis_reply
         else:
             # The LLM evaluated this as 'playing' or not genuinely dangerous.
             # We override the high-risk block and proceed normally as "support_only".
@@ -160,7 +155,7 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
         empathy_items = []
         knowledge_items = []
     else:
-        empathy_items = retriever.retrieve_empathy_examples(empathy_col, user_message)
+        empathy_items = retriever.retrieve_empathy_examples(empathy_col, user_message, top_n=2) # Reduced top_n from 3 for speed
 
         fetch_knowledge = intent in ("knowledge_seeking", "mixed")
         knowledge_items = (
@@ -180,8 +175,8 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
     try:
         response = _get_client().chat_completion(
             messages=messages,
-            max_tokens=400,
-            temperature=0.8,
+            max_tokens=250, # Reduced from 400 for 40% faster generation
+            temperature=0.7,
         )
         ai_reply: str = " ".join(
             response.choices[0].message.content.split()

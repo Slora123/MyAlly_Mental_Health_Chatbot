@@ -7,17 +7,16 @@ export default function Login({ setAuthToken }) {
   const navigate = useNavigate();
   const [role, setRole] = useState(null); // 'user' or 'admin'
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (mode) => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const token = await result.user.getIdToken();
       setAuthToken(token);
 
       if (role === 'admin') {
-        // For now, redirect to admin. In production, you'd verify admin status on backend.
         window.location.href = '/admin';
       } else {
-        checkProfile(token);
+        checkProfile(token, mode);
       }
     } catch (error) {
       console.error("Login failed", error);
@@ -25,26 +24,16 @@ export default function Login({ setAuthToken }) {
     }
   };
 
-  const handleDevLogin = () => {
-    const token = "dummy-dev-token";
-    setAuthToken(token);
-    if (role === 'admin') {
-      window.location.href = '/admin';
-    } else {
-      checkProfile(token);
-    }
-  };
-
-  const checkProfile = async (token) => {
+  const checkProfile = async (token, mode) => {
     try {
       const res = await fetch('/api/user/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        const user = await res.json();
-        if (!user.nickname && !user.gender) {
+        if (mode === 'create') {
           navigate('/onboarding');
         } else {
+          // Sign In mode — go straight to chat
           navigate('/chat');
         }
       } else {
@@ -229,7 +218,7 @@ export default function Login({ setAuthToken }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <button
             className="auth-btn"
-            onClick={handleGoogleLogin}
+            onClick={() => handleGoogleLogin('signin')}
             style={{
               background: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
               color: 'white',
@@ -248,7 +237,7 @@ export default function Login({ setAuthToken }) {
 
           <button
             className="create-btn"
-            onClick={handleGoogleLogin}
+            onClick={() => handleGoogleLogin('create')}
             style={{
               background: 'rgba(0,0,0,0.03)',
               color: '#1e293b',
