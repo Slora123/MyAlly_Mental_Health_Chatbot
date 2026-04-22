@@ -107,6 +107,12 @@ _DISTRESS_TOKENS: frozenset[str] = frozenset(
 )
 
 
+# ── Greeting signals ──────────────────────────────────────────────────────────
+_GREETING_TOKENS: frozenset[str] = frozenset(
+    {"hi", "hello", "hey", "hola", "namaste", "how are you", "how are u", "kaise ho", "kaisa hai", "kaisi hai", "kaisi hai tu", "kaisa hai tu", "kaise ho aap", "kashi ahes", "kasa ahes", "kashi aahe", "kasa aahe", "kay challay", "kya chal raha", "sup", "wassup", "hai", "kashi", "kasa"}
+)
+
+
 def _normalise(text: str) -> str:
     return " ".join(text.lower().split())
 
@@ -117,7 +123,14 @@ def is_high_risk(text: str) -> bool:
     return any(phrase in norm for phrase in _CRISIS_PHRASES)
 
 
+def _is_greeting(norm: str) -> bool:
+    return any(norm.startswith(token) for token in _GREETING_TOKENS) or norm in _GREETING_TOKENS
+
+
 def _has_knowledge_signal(norm: str) -> bool:
+    # If it's a simple greeting like "how are you", it's not knowledge-seeking
+    if _is_greeting(norm) and len(norm.split()) <= 4:
+        return False
     return "?" in norm or any(token in norm for token in _KNOWLEDGE_TOKENS)
 
 
@@ -127,11 +140,12 @@ def _has_distress_signal(norm: str) -> bool:
 
 def classify_intent(text: str) -> str:
     """
-    Classify the user message into one of four intent categories.
+    Classify the user message into one of five intent categories.
 
     Returns
     -------
     "high_risk"         – crisis / self-harm language detected
+    "greeting"          – simple social greeting
     "knowledge_seeking" – factual question, no strong distress signal
     "mixed"             – both distress and a factual question
     "support_only"      – emotional distress with no factual question
@@ -140,6 +154,9 @@ def classify_intent(text: str) -> str:
 
     if is_high_risk(text):
         return "high_risk"
+
+    if _is_greeting(norm) and not _has_distress_signal(norm) and len(norm.split()) <= 5:
+        return "greeting"
 
     has_knowledge = _has_knowledge_signal(norm)
     has_distress = _has_distress_signal(norm)

@@ -246,25 +246,23 @@ export default function Login({ setAuthToken }) {
             {role === 'student' ? 'Sign In with Google' : 'Continue with Google'}
           </button>
 
-          {role === 'student' && (
-            <button
-              className="create-btn"
-              onClick={handleGoogleLogin}
-              style={{
-                background: 'rgba(0,0,0,0.03)',
-                color: '#1e293b',
-                fontWeight: '700',
-                padding: '16px',
-                border: '1px solid rgba(0,0,0,0.05)',
-                borderRadius: '16px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                transition: '0.3s'
-              }}
-            >
-              Create Account
-            </button>
-          )}
+          <button
+            className="create-btn"
+            onClick={handleGoogleLogin}
+            style={{
+              background: 'rgba(0,0,0,0.03)',
+              color: '#1e293b',
+              fontWeight: '700',
+              padding: '16px',
+              border: '1px solid rgba(0,0,0,0.05)',
+              borderRadius: '16px',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: '0.3s'
+            }}
+          >
+            Create Account
+          </button>
 
           <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '15px' }}>
             By continuing, you agree to our Terms of Service.

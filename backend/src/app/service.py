@@ -127,10 +127,13 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
         
         if is_genuine:
             from src.app import counselor_service
-            name = getattr(user_profile, 'name', "Unknown User") if user_profile else "Unknown User"
-            email = getattr(user_profile, 'email', "No email") if user_profile else "No email"
+            name = getattr(user_profile, 'nickname', None) or getattr(user_profile, 'name', "Unknown User")
+            email = getattr(user_profile, 'email', "No email")
             user_info = f"{name} (Email: {email})"
-            counselor_service.save_crisis_alert(summary, user_info=user_info, history=history)
+            
+            # Limit history to last 10 turns for privacy and focus
+            relevant_history = history[-10:] if history else []
+            counselor_service.save_crisis_alert(summary, user_info=user_info, history=relevant_history)
             
             app_logging.append_log(
                 app_logging.make_log_entry(
@@ -152,14 +155,19 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
             intent = "support_only"
 
     # ── Step 2: Retrieval ─────────────────────────────────────────────────────
-    empathy_items = retriever.retrieve_empathy_examples(empathy_col, user_message)
+    if intent == "greeting":
+        # Skip intensive retrieval for greetings to avoid over-empathizing
+        empathy_items = []
+        knowledge_items = []
+    else:
+        empathy_items = retriever.retrieve_empathy_examples(empathy_col, user_message)
 
-    fetch_knowledge = intent in ("knowledge_seeking", "mixed")
-    knowledge_items = (
-        retriever.retrieve_knowledge_snippets(knowledge_col, user_message)
-        if fetch_knowledge
-        else []
-    )
+        fetch_knowledge = intent in ("knowledge_seeking", "mixed")
+        knowledge_items = (
+            retriever.retrieve_knowledge_snippets(knowledge_col, user_message)
+            if fetch_knowledge
+            else []
+        )
 
     # ── Step 3: Prompt assembly ───────────────────────────────────────────────
     empathy_ctx = retriever.render_empathy_context(empathy_items)

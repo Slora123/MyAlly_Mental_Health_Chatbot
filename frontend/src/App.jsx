@@ -50,6 +50,28 @@ function ChatApp({ authToken }) {
     document.body.className = `theme-${theme}`;
   }, [theme]);
 
+  // Load initial session on mount
+  useEffect(() => {
+    if (authToken) {
+      const fetchInitialSession = async () => {
+        try {
+          const res = await fetch('/api/chats', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.sessions && data.sessions.length > 0) {
+              setSessionId(data.sessions[0].id);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load initial session:', err);
+        }
+      };
+      fetchInitialSession();
+    }
+  }, [authToken]);
+
   // Load chat history when session changes
   useEffect(() => {
     if (sessionId) {
@@ -154,16 +176,20 @@ function ChatApp({ authToken }) {
         </main>
         <footer className="input-area">
           <div className="input-pill">
+            <span className="input-icon">😊</span>
             <input
               type="text"
               className="chat-input"
-              placeholder="Type your message here..."
+              placeholder="Type how you feel..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
             <button className="send-btn" onClick={() => handleSendMessage()} disabled={!inputText.trim() || isTyping}>
-              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
             </button>
           </div>
         </footer>

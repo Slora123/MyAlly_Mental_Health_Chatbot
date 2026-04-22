@@ -77,7 +77,16 @@ async def get_chat_history(session_id: str, user: User = Depends(get_current_use
     session = db.query(ChatSession).filter(ChatSession.id == session_id, ChatSession.user_uid == user.uid).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    messages = [{"id": m.id, "role": m.role, "content": m.content, "created_at": m.created_at} for m in session.messages]
+    messages = []
+    from datetime import timezone
+    for m in session.messages:
+        dt_utc = m.created_at.replace(tzinfo=timezone.utc)
+        messages.append({
+            "id": m.id,
+            "role": m.role,
+            "content": m.content,
+            "created_at": dt_utc.isoformat()
+        })
     return {"session_id": session.id, "title": session.title, "messages": messages}
 
 @app.post("/chat")
@@ -162,4 +171,6 @@ async def resolve_alert(alert_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
