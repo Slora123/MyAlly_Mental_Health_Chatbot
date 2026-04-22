@@ -7,8 +7,10 @@ build/
 dist/
 *.egg-info/
 
-# Secret tokens
+# Secret tokens and keys
 .env
+firebase-key.json
+backend/firebase-key.json
 
 # Database and Logs
 chroma_db/
