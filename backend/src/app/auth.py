@@ -8,14 +8,24 @@ from src.app.database import get_db
 from src.app.models import User
 
 # Load Firebase credentials
+from dotenv import load_dotenv
+from pathlib import Path
+
+root_env = Path(__file__).resolve().parents[3] / ".env"
+load_dotenv(dotenv_path=root_env)
+
 firebase_cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
 if firebase_cred_path and os.path.exists(firebase_cred_path):
-    cred = credentials.Certificate(firebase_cred_path)
-    firebase_admin.initialize_app(cred)
+    # If path is relative, make it relative to backend root
+    if not os.path.isabs(firebase_cred_path):
+        firebase_cred_path = os.path.join(Path(__file__).resolve().parents[2], firebase_cred_path)
+    
+    print(f"🔐 Initializing Firebase with: {firebase_cred_path}")
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(firebase_cred_path)
+        firebase_admin.initialize_app(cred)
 else:
-    print("⚠️ WARNING: Firebase credentials not found. Authentication will bypass for testing.")
-    # For a real production app, you would raise an exception here.
-    # We will allow a dummy fallback for development if keys aren't set.
+    print(f"⚠️ WARNING: Firebase credentials NOT found at: {firebase_cred_path}")
 
 security = HTTPBearer()
 

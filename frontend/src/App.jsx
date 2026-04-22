@@ -120,14 +120,27 @@ function ChatApp({ authToken }) {
   };
 
   return (
-    <div className="app-wrapper" style={{ display: 'flex' }}>
-      <Sidebar 
-        authToken={authToken} 
-        currentSessionId={sessionId} 
-        onSelectSession={setSessionId} 
-        onNewChat={() => setSessionId(null)} 
-      />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <div className="app-wrapper" style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      padding: '20px' 
+    }}>
+      <div className="chat-glass-card" style={{ 
+        width: '100%', 
+        maxWidth: '1200px', 
+        height: '92vh',
+        background: 'rgba(255, 250, 245, 0.85)',
+        backdropFilter: 'blur(30px)',
+        WebkitBackdropFilter: 'blur(30px)',
+        borderRadius: '32px',
+        border: '1px solid rgba(255, 255, 255, 0.5)',
+        boxShadow: '0 40px 100px -20px rgba(0, 0, 0, 0.1)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'relative'
+      }}>
         <Header theme={theme} onSetTheme={setTheme} />
         <main className="chat-container">
           {messages.length === 0 && (

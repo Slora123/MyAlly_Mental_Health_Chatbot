@@ -3,11 +3,12 @@
 .app-wrapper {
   height: 100vh;
   display: flex;
-  flex-direction: column;
-  max-width: 1200px;
-  margin: 0 auto;
+  flex-direction: row;
+  width: 100%;
+  background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 50%, #fff1f1 100%);
   position: relative;
   z-index: 10;
+  overflow: hidden;
 }
 
 .chat-container {

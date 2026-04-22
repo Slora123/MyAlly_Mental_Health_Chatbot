@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import uuid
+from typing import Optional
 
 from src.app.service import chat_logic
 from src.app.database import init_db, get_db
@@ -44,7 +45,7 @@ class OnboardingRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-    session_id: str = None # If None, creates a new session
+    session_id: Optional[str] = None # If None, creates a new session
 
 @app.get("/")
 async def root():
@@ -81,6 +82,7 @@ async def get_chat_history(session_id: str, user: User = Depends(get_current_use
 
 @app.post("/chat")
 async def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    print(f"📥 Received chat request: {req}")
     try:
         if not req.session_id:
             # Create new session
