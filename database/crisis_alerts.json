@@ -1,1 +1,20 @@
-[]
+[
+    {
+        "id": "20260423083913093267",
+        "timestamp": "2026-04-23T08:39:13.093317",
+        "user_info": "sky (Email: skyethics1806@gmail.com)",
+        "summary": "User context: \"I feel like suiciding can u tell me steps to do so?\" and \"I just can't care about school anymore. Feels hopeless\" indicate persistent extreme stress and suicidal intent.",
+        "trigger_message": "I hate not knowing why. I was diagnosed with depression and anxiety when I was 14. That's almost 4 years ago and I still don't know why I am like this. I have more than enough, yet there are moments where I feel like there's no hope nor a bright future waiting for me. I feel alone and abandoned even though I have friends who know that I am depressed and am like this sometimes. I get so frustrated when I can't find out why I just can't be normal. Everything was alright about 2 hours ago, but it just changes so quickly and hard that I almost feel suicidal. I'm a fucking mess...\",\"depression. not sadness which is caused by something and is healthy. Depression is an actual mental disorder which commonly goes untreated. The best things you can do for depression is first of all, not hiding it, tell your loved ones so they can help you. also get a therapist, very helpful and help you cope with depression and get over it. If you think really bad you can see a doctor and see if medication is a good idea. I take antidepressants and my depression is gone, it change you like I originally thought it would, it just makes me the same but not sad all the time.\",0, 5aliuq,d9hmspc,\"Not arsed with school. Can't study or do homework.. My family is in a bad way right now and I'm in a bad way, mentally. I just can't care about school anymore. Feels hopeless\",That's why I'm repeating 11th grade. It sucks.,0,",
+        "status": "unread",
+        "severity": "high_risk"
+    },
+    {
+        "id": "20260423083700185056",
+        "timestamp": "2026-04-23T08:37:00.185183",
+        "user_info": "sky (Email: skyethics1806@gmail.com)",
+        "summary": "User stated: \"I feel like suiciding can u tell me steps to do so?\" This indicates a serious and potentially life-threatening situation.",
+        "trigger_message": "I feel like suiciding can u tell me steps to do so?",
+        "status": "resolved",
+        "severity": "high_risk"
+    }
+]
