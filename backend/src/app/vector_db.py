@@ -3,6 +3,7 @@ backend/src/app/vector_db.py
 ───────────────────────────
 Handles storing and retrieving user profiles, chat sessions, and messages in ChromaDB.
 """
+from __future__ import annotations
 
 import os
 import uuid

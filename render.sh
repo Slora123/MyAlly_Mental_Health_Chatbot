@@ -11,13 +11,22 @@ cd ..
 
 # --- 2. Build Backend ---
 echo "Installing Backend dependencies..."
-pip install -r backend/requirements.txt
+if [ -d ".venv" ]; then
+    source .venv/bin/activate
+    pip install -r backend/requirements.txt
+else
+    python3 -m pip install -r backend/requirements.txt
+fi
 
 # --- 3. Prep Data (Build Vector Index) ---
 # We run the index builder to ensure the database is ready.
 # We set PYTHONPATH to include 'backend' so imports like 'src.rag' work.
 echo "Initializing RAG index..."
 export PYTHONPATH=$PYTHONPATH:$(pwd)/backend
-python database/build_rag_index.py
+if [ -d ".venv" ]; then
+    python3 database/build_rag_index.py
+else
+    python3 database/build_rag_index.py
+fi
 
 echo "Build complete!"

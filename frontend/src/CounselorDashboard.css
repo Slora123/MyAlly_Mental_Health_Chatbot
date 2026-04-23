@@ -75,6 +75,7 @@
   margin: 0;
   background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -1.5px;
   line-height: 1;
@@ -162,6 +163,7 @@
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -209,6 +211,7 @@
   margin: 0;
   background: linear-gradient(to right, #1e293b, #64748b);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -2px;
 }

@@ -13,7 +13,6 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 import uuid
 from typing import Optional
 
@@ -30,7 +29,6 @@ app = FastAPI(title="MyAlly Mental-Health Support", lifespan=lifespan)
 
 # Serve everything inside frontend/dist
 _STATIC_DIR = Path(__file__).resolve().parents[3] / "frontend" / "dist"
-app.mount("/assets", StaticFiles(directory=str(_STATIC_DIR / "assets")), name="assets")
 
 class OnboardingRequest(BaseModel):
     nickname: str = None
@@ -45,12 +43,7 @@ class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None # If None, creates a new session
 
-@app.get("/")
-async def root():
-    return FileResponse(str(_STATIC_DIR / "index.html"))
-
 # ── User API ──────────────────────────────────────────────────────────────
-
 @app.get("/api/user/profile")
 async def get_profile(user: dict = Depends(get_current_user)):
     return user
@@ -145,6 +138,18 @@ async def resolve_alert(alert_id: str):
     if success:
         return {"status": "success"}
     return JSONResponse(status_code=404, content={"error": "Alert not found"})
+
+
+# Serve frontend/dist files
+@app.get("/{file_path:path}")
+async def serve_static(file_path: str):
+    # Try to serve specific file (like login-mockup.png)
+    full_path = _STATIC_DIR / file_path
+    if full_path.exists() and full_path.is_file():
+        return FileResponse(str(full_path))
+    
+    # Otherwise fallback to index.html (SPA support)
+    return FileResponse(str(_STATIC_DIR / "index.html"))
 
 
 if __name__ == "__main__":
