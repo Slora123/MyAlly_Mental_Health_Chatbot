@@ -18,14 +18,12 @@ import uuid
 from typing import Optional
 
 from src.app.service import chat_logic
-from src.app.database import init_db, get_db
-from src.app.models import User, ChatSession, ChatMessage
 from src.app.auth import get_current_user
+from . import vector_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize Database on startup
-    init_db()
+    # No SQL DB to initialize anymore
     yield
 
 app = FastAPI(title="MyAlly Mental-Health Support", lifespan=lifespan)
@@ -54,77 +52,63 @@ async def root():
 # ── User API ──────────────────────────────────────────────────────────────
 
 @app.get("/api/user/profile")
-async def get_profile(user: User = Depends(get_current_user)):
+async def get_profile(user: dict = Depends(get_current_user)):
     return user
 
 @app.post("/api/user/onboarding")
-async def save_onboarding(req: OnboardingRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    for key, value in req.dict(exclude_unset=True).items():
-        setattr(user, key, value)
-    db.commit()
-    db.refresh(user)
-    return {"status": "success", "user": user}
+async def save_onboarding(req: OnboardingRequest, user: dict = Depends(get_current_user)):
+    profile_data = req.dict(exclude_unset=True)
+    updated_user = vector_db.save_user_profile(user["uid"], profile_data)
+    return {"status": "success", "user": updated_user}
 
 # ── Chat API ──────────────────────────────────────────────────────────────
 
 @app.get("/api/chats")
-async def get_chat_sessions(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    sessions = db.query(ChatSession).filter(ChatSession.user_uid == user.uid).order_by(ChatSession.updated_at.desc()).all()
-    return {"sessions": [{"id": s.id, "title": s.title, "updated_at": s.updated_at} for s in sessions]}
+async def get_chat_sessions(user: dict = Depends(get_current_user)):
+    sessions = vector_db.get_user_sessions(user["uid"])
+    return {"sessions": sessions}
 
 @app.get("/api/chats/{session_id}")
-async def get_chat_history(session_id: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    session = db.query(ChatSession).filter(ChatSession.id == session_id, ChatSession.user_uid == user.uid).first()
+async def get_chat_history(session_id: str, user: dict = Depends(get_current_user)):
+    session = vector_db.get_session(session_id, user["uid"])
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    messages = []
-    from datetime import timezone
-    for m in session.messages:
-        dt_utc = m.created_at.replace(tzinfo=timezone.utc)
-        messages.append({
-            "id": m.id,
-            "role": m.role,
-            "content": m.content,
-            "created_at": dt_utc.isoformat()
-        })
-    return {"session_id": session.id, "title": session.title, "messages": messages}
+    
+    messages = vector_db.get_chat_history(session_id)
+    return {"session_id": session_id, "title": session["title"], "messages": messages}
 
 @app.post("/chat")
-async def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
     print(f"📥 Received chat request: {req}")
     try:
         if not req.session_id:
             # Create new session
             title = "Chat: " + req.message[:20] + "..." if len(req.message) > 20 else "Chat: " + req.message
-            new_session = ChatSession(id=str(uuid.uuid4()), user_uid=user.uid, title=title)
-            db.add(new_session)
-            db.commit()
-            db.refresh(new_session)
-            session_id = new_session.id
+            session = vector_db.create_chat_session(user["uid"], title)
+            session_id = session["id"]
         else:
             session_id = req.session_id
-            
-        session = db.query(ChatSession).filter(ChatSession.id == session_id, ChatSession.user_uid == user.uid).first()
-        if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
+            session = vector_db.get_session(session_id, user["uid"])
+            if not session:
+                raise HTTPException(status_code=404, detail="Session not found")
 
         # Save user message to DB
-        user_msg = ChatMessage(session_id=session_id, role="user", content=req.message)
-        db.add(user_msg)
-        db.commit()
+        vector_db.add_chat_message(session_id, role="user", content=req.message)
 
         # Build history format expected by logic: list of [user_msg, bot_msg] pairs
-        db.refresh(session)
+        full_history = vector_db.get_chat_history(session_id)
+        
         history_pairs = []
         current_pair = [None, None]
-        for m in session.messages[:-1]: # exclude the one we just added
-            if m.role == "user":
+        # Exclude the message we just added for the 'history' argument to chat_logic
+        for m in full_history[:-1]: 
+            if m["role"] == "user":
                 if current_pair[0] is not None:
                     history_pairs.append(current_pair)
                     current_pair = [None, None]
-                current_pair[0] = m.content
-            elif m.role == "bot":
-                current_pair[1] = m.content
+                current_pair[0] = m["content"]
+            elif m["role"] == "bot":
+                current_pair[1] = m["content"]
                 history_pairs.append(current_pair)
                 current_pair = [None, None]
         if current_pair[0] is not None or current_pair[1] is not None:
@@ -134,14 +118,8 @@ async def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Ses
         reply = chat_logic(req.message, history_pairs, user_profile=user)
         
         # Save bot message to DB
-        bot_msg = ChatMessage(session_id=session_id, role="bot", content=reply)
-        db.add(bot_msg)
+        vector_db.add_chat_message(session_id, role="bot", content=reply)
         
-        # Update session timestamp
-        from datetime import datetime
-        session.updated_at = datetime.utcnow()
-        db.commit()
-
         return {"reply": reply, "session_id": session_id}
     except Exception as exc:
         import traceback

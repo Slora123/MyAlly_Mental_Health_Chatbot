@@ -3,9 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, auth
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
-from src.app.database import get_db
-from src.app.models import User
+from . import vector_db
 
 # Load Firebase credentials
 from dotenv import load_dotenv
@@ -30,20 +28,17 @@ else:
 security = HTTPBearer()
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     token = credentials.credentials
     
     # Development bypass if no Firebase configured
     if not firebase_cred_path or not os.path.exists(firebase_cred_path):
         if token == "dummy-dev-token":
-            user = db.query(User).filter(User.uid == "dev-user-123").first()
+            uid = "dev-user-123"
+            user = vector_db.get_user_profile(uid)
             if not user:
-                user = User(uid="dev-user-123", email="dev@example.com", name="Dev User")
-                db.add(user)
-                db.commit()
-                db.refresh(user)
+                user = vector_db.save_user_profile(uid, {"email": "dev@example.com", "name": "Dev User"})
             return user
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -54,15 +49,12 @@ def get_current_user(
         decoded_token = auth.verify_id_token(token)
         uid = decoded_token['uid']
         
-        user = db.query(User).filter(User.uid == uid).first()
+        user = vector_db.get_user_profile(uid)
         if not user:
             # Create a basic user record if they just signed up
             email = decoded_token.get('email', '')
             name = decoded_token.get('name', 'Anonymous')
-            user = User(uid=uid, email=email, name=name)
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+            user = vector_db.save_user_profile(uid, {"email": email, "name": name})
             
         return user
     except Exception as e:

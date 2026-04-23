@@ -75,14 +75,14 @@ def build_messages(
     
     dynamic_system_prompt = SYSTEM_PROMPT
     if user_profile:
-        name = getattr(user_profile, 'nickname', None) or getattr(user_profile, 'name', None) or "Anonymous"
+        name = user_profile.get('nickname') or user_profile.get('name') or "Anonymous"
         profile_info = f"\n\n--- USER PROFILE CONTEXT ---\n- Name/Nickname: {name}\n"
-        if getattr(user_profile, 'gender', None): profile_info += f"- Gender: {user_profile.gender}\n"
-        if getattr(user_profile, 'preferred_tone', None): profile_info += f"- Preferred Tone: {user_profile.preferred_tone}\n"
-        if getattr(user_profile, 'support_style', None): profile_info += f"- Support Style: {user_profile.support_style}\n"
-        if getattr(user_profile, 'lifestyle_patterns', None): profile_info += f"- Lifestyle Patterns: {user_profile.lifestyle_patterns}\n"
-        if getattr(user_profile, 'support_network', None): profile_info += f"- Support Network: {user_profile.support_network}\n"
-        if getattr(user_profile, 'education', None): profile_info += f"- Education: {user_profile.education}\n"
+        if user_profile.get('gender'): profile_info += f"- Gender: {user_profile.get('gender')}\n"
+        if user_profile.get('preferred_tone'): profile_info += f"- Preferred Tone: {user_profile.get('preferred_tone')}\n"
+        if user_profile.get('support_style'): profile_info += f"- Support Style: {user_profile.get('support_style')}\n"
+        if user_profile.get('lifestyle_patterns'): profile_info += f"- Lifestyle Patterns: {user_profile.get('lifestyle_patterns')}\n"
+        if user_profile.get('support_network'): profile_info += f"- Support Network: {user_profile.get('support_network')}\n"
+        if user_profile.get('education'): profile_info += f"- Education: {user_profile.get('education')}\n"
         profile_info += "Use this information to deeply personalize your responses. Match their preferred tone and consider their lifestyle and support network when offering advice or comfort. Do NOT mention you are reading a profile.\n"
         dynamic_system_prompt += profile_info
 

@@ -116,8 +116,8 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
         if is_genuine:
             import random
             from src.app import counselor_service
-            name = getattr(user_profile, 'nickname', None) or getattr(user_profile, 'name', "bro")
-            email = getattr(user_profile, 'email', "No email")
+            name = user_profile.get('nickname') or user_profile.get('name', "bro")
+            email = user_profile.get('email', "No email")
             user_info = f"{name} (Email: {email})"
             
             # Share ONLY the trigger message for context, no history as per privacy request
