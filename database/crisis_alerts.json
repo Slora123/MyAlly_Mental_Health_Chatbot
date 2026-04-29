@@ -1,5 +1,14 @@
 [
     {
+        "id": "20260430003425045059",
+        "timestamp": "2026-04-30T00:34:25.045087",
+        "user_info": "Sky (Email: sweedal1a1982@gmail.com)",
+        "summary": "User stated: \"I feel like suicide.\" This indicates potential suicidal intent and requires immediate attention.",
+        "trigger_message": "I feel like suicide",
+        "status": "resolved",
+        "severity": "high_risk"
+    },
+    {
         "id": "20260423083913093267",
         "timestamp": "2026-04-23T08:39:13.093317",
         "user_info": "sky (Email: skyethics1806@gmail.com)",
