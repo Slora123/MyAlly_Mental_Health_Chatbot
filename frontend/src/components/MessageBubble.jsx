@@ -2,7 +2,10 @@ import { THEMES } from '../themes';
 import styles from './MessageBubble.module.css';
 
 function timeStr(iso) {
-  return new Date(iso).toLocaleTimeString('en-IN', {
+  // Backend stores UTC timestamps without 'Z'. Append it so the browser
+  // correctly treats the time as UTC and converts to local time (IST).
+  const normalized = iso && !iso.endsWith('Z') ? iso + 'Z' : iso;
+  return new Date(normalized).toLocaleTimeString('en-IN', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true,

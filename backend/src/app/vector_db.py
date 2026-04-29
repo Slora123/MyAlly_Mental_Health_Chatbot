@@ -1,10 +1,11 @@
 """
 backend/src/app/vector_db.py
-───────────────────────────
+----------------------------
 Handles storing and retrieving user profiles, chat sessions, and messages in ChromaDB.
 """
 from __future__ import annotations
 
+import json
 import os
 import uuid
 from datetime import datetime
@@ -58,6 +59,30 @@ def save_user_profile(uid: str, profile_data: dict):
         documents=[f"Profile for {updated_data.get('name', 'User')}" ]
     )
     return updated_data
+
+
+def get_life_events(uid: str) -> dict:
+    """Returns the parsed life events dict stored in the user's profile."""
+    profile = get_user_profile(uid)
+    if not profile:
+        return {}
+    events_json = profile.get("life_events_json", "")
+    if events_json:
+        try:
+            return json.loads(events_json)
+        except Exception:
+            return {}
+    return {}
+
+
+def update_life_events(uid: str, new_events: dict) -> None:
+    """Merges new_events into the user's stored life events and persists them."""
+    if not new_events:
+        return
+    existing = get_life_events(uid)
+    merged = {**existing, **new_events}
+    save_user_profile(uid, {"life_events_json": json.dumps(merged)})
+
 
 # ── Chat Session Operations ──────────────────────────────────────────────────
 

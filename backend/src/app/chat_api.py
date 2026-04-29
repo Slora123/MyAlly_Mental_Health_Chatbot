@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from contextlib import asynccontextmanager
+from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -108,7 +109,7 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
             history_pairs.append(current_pair)
 
         # Call logic
-        reply = chat_logic(req.message, history_pairs, user_profile=user)
+        reply = chat_logic(req.message, history_pairs, user_profile=user, today=datetime.utcnow())
         
         # Save bot message to DB
         vector_db.add_chat_message(session_id, role="bot", content=reply)

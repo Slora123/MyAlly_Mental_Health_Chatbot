@@ -23,8 +23,9 @@ from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 
 from src.app import logging as app_logging
-from src.rag import retriever, prompt_builder, router, safety
+from src.rag import retriever, prompt_builder, router, safety, memory_extractor
 from src.rag.embeddings import get_embedding_function
+from src.app import vector_db as app_vector_db
 
 from pathlib import Path
 root_env = Path(__file__).resolve().parents[3] / ".env"
@@ -84,7 +85,7 @@ def _require_index(empathy_col: chromadb.Collection, knowledge_col: chromadb.Col
 
 # ── Main chat logic ───────────────────────────────────────────────────────────
 
-def chat_logic(user_message: str, history: list, user_profile=None) -> str:
+def chat_logic(user_message: str, history: list, user_profile=None, today=None) -> str:
     """
     Full RAG pipeline entry-point consumed by the Gradio ChatInterface.
 
@@ -98,6 +99,10 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
     -------
     The assistant reply string.
     """
+    from datetime import datetime as _dt
+    if today is None:
+        today = _dt.utcnow()
+
     empathy_col, knowledge_col = _get_collections()
 
     try:
@@ -149,6 +154,19 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
             is_safe = True
             intent = "support_only"
 
+    # ── Step 1.5: Extract & persist life events from user message ─────────────
+    uid = user_profile.get("uid") if user_profile else None
+    if uid:
+        detected = memory_extractor.extract_events(user_message, today=today)
+        if detected:
+            app_vector_db.update_life_events(uid, detected)
+
+    # ── Step 1.6: Build proactive context from stored life events ─────────────
+    proactive_ctx = None
+    if uid:
+        life_events = app_vector_db.get_life_events(uid)
+        proactive_ctx = memory_extractor.get_proactive_context(life_events, today=today)
+
     # ── Step 2: Retrieval ─────────────────────────────────────────────────────
     if intent == "greeting":
         # Skip intensive retrieval for greetings to avoid over-empathizing
@@ -168,14 +186,15 @@ def chat_logic(user_message: str, history: list, user_profile=None) -> str:
     empathy_ctx = retriever.render_empathy_context(empathy_items)
     knowledge_ctx = retriever.render_knowledge_context(knowledge_items)
     messages = prompt_builder.build_messages(
-        user_message, history, empathy_ctx, knowledge_ctx, user_profile
+        user_message, history, empathy_ctx, knowledge_ctx, user_profile,
+        proactive_context=proactive_ctx
     )
 
     # ── Step 4: Generation ────────────────────────────────────────────────────
     try:
         response = _get_client().chat_completion(
             messages=messages,
-            max_tokens=250, # Reduced from 400 for 40% faster generation
+            max_tokens=100, # Short, friend-style replies only
             temperature=0.7,
         )
         ai_reply: str = " ".join(
