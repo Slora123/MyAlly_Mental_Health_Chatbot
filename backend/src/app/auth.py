@@ -57,8 +57,11 @@ def get_current_user(
 ):
     token = credentials.credentials
     
+    # Check if Firebase is initialized
+    is_configured = firebase_admin._apps or (firebase_cred_path and os.path.exists(firebase_cred_path))
+    
     # Development bypass if no Firebase configured
-    if not firebase_cred_path or not os.path.exists(firebase_cred_path):
+    if not is_configured:
         if token == "dummy-dev-token":
             uid = "dev-user-123"
             user = vector_db.get_user_profile(uid)
@@ -67,7 +70,7 @@ def get_current_user(
             return user
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials (Firebase not configured)",
+            detail="Invalid authentication credentials (Firebase not configured on server)",
         )
 
     try:
