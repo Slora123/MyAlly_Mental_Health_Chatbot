@@ -9,39 +9,51 @@ export default function Login({ setAuthToken }) {
 
   const handleGoogleLogin = async (mode) => {
     try {
+      console.log("🚀 Starting Google Login...");
       const result = await signInWithPopup(auth, googleProvider);
+      console.log("✅ Firebase Login Success:", result.user.email);
+      
       const token = await result.user.getIdToken();
+      console.log("🔑 ID Token obtained");
       setAuthToken(token);
 
       if (role === 'admin') {
+        console.log("👑 Admin role detected, redirecting to /admin");
         window.location.href = '/admin';
       } else {
+        console.log("👤 Student role detected, checking profile...");
         checkProfile(token, mode);
       }
     } catch (error) {
-      console.error("Login failed", error);
+      console.error("❌ Login failed:", error);
       alert("Login failed: " + error.message);
     }
   };
 
   const checkProfile = async (token, mode) => {
     try {
+      console.log("📡 Calling backend /api/user/profile...");
       const res = await fetch('/api/user/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      console.log("📡 Backend response status:", res.status);
+
       if (res.ok) {
+        console.log("✨ Profile check OK, navigating...");
         if (mode === 'create') {
+          console.log("➡️ Navigating to /onboarding");
           navigate('/onboarding');
         } else {
-          // Sign In mode — go straight to chat
+          console.log("➡️ Navigating to /chat");
           navigate('/chat');
         }
       } else {
         const errData = await res.json();
+        console.error("❌ Authentication failed on backend:", errData);
         alert("Authentication failed: " + (errData.detail || "Unknown error"));
       }
     } catch (err) {
-      console.error(err);
+      console.error("❌ Backend connection error:", err);
       alert("Backend connection error: " + err.message);
     }
   };

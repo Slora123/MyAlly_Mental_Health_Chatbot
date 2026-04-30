@@ -12,8 +12,17 @@ import { detectThemeFromText } from './themes';
 import './App.css';
 
 export default function App() {
-  const [authToken, setAuthToken] = useState(null);
+  const [authToken, setAuthTokenState] = useState(localStorage.getItem('myally_token'));
   const isAdmin = window.location.pathname === '/admin';
+
+  const setAuthToken = (token) => {
+    if (token) {
+      localStorage.setItem('myally_token', token);
+    } else {
+      localStorage.removeItem('myally_token');
+    }
+    setAuthTokenState(token);
+  };
 
   if (isAdmin) {
     return <CounselorDashboard />;
@@ -26,14 +35,14 @@ export default function App() {
         authToken ? <Onboarding authToken={authToken} /> : <Navigate to="/" />
       } />
       <Route path="/chat" element={
-        authToken ? <ChatApp authToken={authToken} /> : <Navigate to="/" />
+        authToken ? <ChatApp authToken={authToken} setAuthToken={setAuthToken} /> : <Navigate to="/" />
       } />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }
 
-function ChatApp({ authToken }) {
+function ChatApp({ authToken, setAuthToken }) {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -66,6 +75,10 @@ function ChatApp({ authToken }) {
           const res = await fetch('/api/chats', {
             headers: { 'Authorization': `Bearer ${authToken}` }
           });
+          if (res.status === 401) {
+            setAuthToken(null);
+            return;
+          }
           if (res.ok) {
             const data = await res.json();
             if (data.sessions && data.sessions.length > 0) {
@@ -130,6 +143,12 @@ function ChatApp({ authToken }) {
         },
         body: JSON.stringify({ message: text, session_id: sessionId }),
       });
+
+      if (response.status === 401) {
+        console.error('Session expired, logging out...');
+        setAuthToken(null);
+        return;
+      }
 
       const data = await response.json();
       if (data.session_id && data.session_id !== sessionId) {
