@@ -12,7 +12,9 @@ import { detectThemeFromText } from './themes';
 import './App.css';
 
 export default function App() {
+  // Read token directly from localStorage - this is the source of truth
   const [authToken, setAuthTokenState] = useState(localStorage.getItem('myally_token'));
+  const [isLoading, setIsLoading] = useState(!!localStorage.getItem('myally_token'));
   const isAdmin = window.location.pathname === '/admin';
 
   const setAuthToken = (token) => {
@@ -24,8 +26,53 @@ export default function App() {
     setAuthTokenState(token);
   };
 
+  // On startup, refresh the Firebase token to prevent expiry issues
+  useEffect(() => {
+    const storedToken = localStorage.getItem('myally_token');
+    if (!storedToken) {
+      setIsLoading(false);
+      return;
+    }
+    // Verify the token is still valid against the backend
+    fetch('/api/user/profile', {
+      headers: { 'Authorization': `Bearer ${storedToken}` }
+    }).then(res => {
+      if (res.status === 401) {
+        // Token expired or invalid - clear it
+        console.log('Stored token is invalid, clearing...');
+        setAuthToken(null);
+      } else {
+        // Token is valid, keep it
+        setAuthTokenState(storedToken);
+      }
+    }).catch(() => {
+      // Network error - keep the token and try anyway
+      setAuthTokenState(storedToken);
+    }).finally(() => {
+      setIsLoading(false);
+    });
+  }, []);
+
   if (isAdmin) {
     return <CounselorDashboard />;
+  }
+
+  // Show nothing while we verify the stored token
+  if (isLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #f3e8ff 0%, #fce7f3 50%, #fff1f1 100%)',
+        fontFamily: "'Outfit', sans-serif",
+        fontSize: '1.2rem',
+        color: '#94a3b8'
+      }}>
+        Loading...
+      </div>
+    );
   }
 
   return (
