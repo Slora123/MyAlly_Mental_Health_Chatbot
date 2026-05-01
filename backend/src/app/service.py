@@ -33,6 +33,7 @@ load_dotenv(dotenv_path=root_env)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+# Using Qwen2.5-7B-Instruct as requested. (Note: May have cold-start delays on free HF Inference API)
 MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 DB_PATH = str((
     __import__("pathlib").Path(__file__).resolve().parents[3] / "database" / "chroma_db"
@@ -58,7 +59,8 @@ def _get_client() -> InferenceClient:
     global _client
     if _client is None:
         _ensure_hf_token()
-        _client = InferenceClient(model=MODEL_NAME, token=HF_TOKEN)
+        # Added a 15-second timeout to prevent the app from hanging forever during cold starts
+        _client = InferenceClient(model=MODEL_NAME, token=HF_TOKEN, timeout=15)
     return _client
 
 

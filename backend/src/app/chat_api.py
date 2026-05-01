@@ -59,7 +59,32 @@ async def save_onboarding(req: OnboardingRequest, user: dict = Depends(get_curre
 @app.get("/api/chats")
 async def get_chat_sessions(user: dict = Depends(get_current_user)):
     sessions = vector_db.get_user_sessions(user["uid"])
+    # Sort descending by updated_at
+    sessions.sort(key=lambda s: s["updated_at"], reverse=True)
     return {"sessions": sessions}
+
+@app.get("/api/chats/all")
+async def get_all_chats(user: dict = Depends(get_current_user)):
+    sessions = vector_db.get_user_sessions(user["uid"])
+    all_messages = []
+    latest_session_id = None
+    
+    # Sort sessions by updated_at to find the latest
+    sessions.sort(key=lambda s: s["updated_at"], reverse=True)
+    if sessions:
+        latest_session_id = sessions[0]["id"]
+        
+    for s in sessions:
+        msgs = vector_db.get_chat_history(s["id"])
+        all_messages.extend(msgs)
+        
+    # Sort all messages chronologically
+    all_messages.sort(key=lambda x: x["created_at"])
+    
+    return {
+        "session_id": latest_session_id,
+        "messages": all_messages
+    }
 
 @app.get("/api/chats/{session_id}")
 async def get_chat_history(session_id: str, user: dict = Depends(get_current_user)):

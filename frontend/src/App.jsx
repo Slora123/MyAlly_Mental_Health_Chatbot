@@ -135,13 +135,13 @@ function ChatApp({ authToken, setAuthToken }) {
   const [sessionId, setSessionId] = useState(null);
   const [userEmail, setUserEmail] = useState('');
   const [userProfile, setUserProfile] = useState(null);
-  const [sidebarKey, setSidebarKey] = useState(0); // used to refresh sidebar after new chat
   
   // Avatar states
   const [myAllyAvatar, setMyAllyAvatar] = useState(null);
   const [userAvatar, setUserAvatar] = useState(null);
 
   const chatContainerRef = useRef(null);
+
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -172,9 +172,9 @@ function ChatApp({ authToken, setAuthToken }) {
         })
         .catch(() => {});
 
-      const fetchInitialSession = async () => {
+      const fetchAllHistory = async () => {
         try {
-          const res = await fetch('/api/chats', {
+          const res = await fetch('/api/chats/all', {
             headers: { 'Authorization': `Bearer ${authToken}` }
           });
           if (res.status === 401) {
@@ -183,57 +183,25 @@ function ChatApp({ authToken, setAuthToken }) {
           }
           if (res.ok) {
             const data = await res.json();
-            if (data.sessions && data.sessions.length > 0) {
-              setSessionId(data.sessions[0].id);
+            if (data.session_id) {
+              setSessionId(data.session_id);
+            }
+            if (data.messages) {
+              const loadedMessages = data.messages.map(m => ({
+                role: m.role,
+                text: m.content,
+                time: m.created_at
+              }));
+              setMessages(loadedMessages);
             }
           }
         } catch (err) {
-          console.error('Failed to load initial session:', err);
+          console.error('Failed to load chat history:', err);
         }
       };
-      fetchInitialSession();
+      fetchAllHistory();
     }
   }, [authToken]);
-
-  // Load chat history when session changes
-  useEffect(() => {
-    if (sessionId) {
-      fetchHistory(sessionId);
-    } else {
-      setMessages([]);
-    }
-  }, [sessionId]);
-
-  const fetchHistory = async (id) => {
-    try {
-      const res = await fetch(`/api/chats/${id}`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const loadedMessages = data.messages.map(m => ({
-          role: m.role,
-          text: m.content,
-          time: m.created_at
-        }));
-        setMessages(loadedMessages);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleSelectSession = (id) => {
-    setSessionId(id);
-    setSidebarOpen(false);
-  };
-
-  const handleNewChat = () => {
-    setSessionId(null);
-    setMessages([]);
-    setSidebarOpen(false);
-    setSidebarKey(k => k + 1);
-  };
 
   const handleSendMessage = async (textOverride) => {
     const text = textOverride || inputText;
@@ -289,8 +257,9 @@ function ChatApp({ authToken, setAuthToken }) {
         display: 'flex',
         flexDirection: 'column'
       }}>
-
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0 }}>
+        
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, position: 'relative' }}>
+          
           <Header
             theme={theme}
             onSetTheme={setTheme}

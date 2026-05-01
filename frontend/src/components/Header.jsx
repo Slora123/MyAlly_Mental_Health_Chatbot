@@ -11,11 +11,9 @@ export default function Header({ theme, onSetTheme, userEmail, authToken, onLogo
   const fileInputRef = useRef(null);
   const t = THEMES[theme];
 
-  const gender = userProfile?.gender?.toLowerCase() || 'other';
-  
   // Resolve bot avatar
-  const botImg = myAllyAvatar || (gender === 'female' ? '/assets/bot_female.png' : (gender === 'male' ? '/assets/bot_male.png' : '/assets/bot_default.png'));
-  
+  const botImg = myAllyAvatar || '/assets/bot_default.png';
+
   // Get initials for user circle if no custom avatar
   const initials = userEmail ? userEmail.charAt(0).toUpperCase() : '?';
 
@@ -115,7 +113,7 @@ export default function Header({ theme, onSetTheme, userEmail, authToken, onLogo
                 <div style={{ padding: '8px 10px' }}>
                   <p style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(0,0,0,0.4)', marginBottom: '8px', textTransform: 'uppercase' }}>Change MyAlly Avatar</p>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    {['/assets/bot_female.png', '/assets/bot_male.png'].map(url => (
+                    {['/assets/bot_female.png', '/assets/bot_male.png', '/assets/bot_default.png'].map(url => (
                       <button 
                         key={url}
                         onClick={() => setMyAllyAvatar(url)}
