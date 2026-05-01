@@ -117,7 +117,8 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
     except Exception as exc:
         import traceback
         traceback.print_exc()
-        return JSONResponse(status_code=500, content={"error": str(exc)})
+        # TEMPORARY DEBUG: Return the actual error as the bot reply so we can see what crashed!
+        return {"reply": f"🤖 CRASH LOG: {str(exc)}", "session_id": req.session_id or "error"}
 
 
 # ── Admin/Counselor Endpoints ──────────────────────────────────────────────
