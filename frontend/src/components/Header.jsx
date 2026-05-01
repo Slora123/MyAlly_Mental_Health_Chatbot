@@ -2,11 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { THEMES } from '../themes';
 import styles from './Header.module.css';
 
-export default function Header({ theme, onSetTheme, userEmail, authToken, onLogout, userProfile }) {
+export default function Header({ theme, onSetTheme, userEmail, authToken, onLogout, userProfile, myAllyAvatar, setMyAllyAvatar, userAvatar, setUserAvatar }) {
   const [themeOpen, setThemeOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [myAllyAvatar, setMyAllyAvatar] = useState(null);
-  const [userAvatar, setUserAvatar] = useState(null);
 
   const themeRef = useRef(null);
   const profileRef = useRef(null);
@@ -66,9 +64,8 @@ export default function Header({ theme, onSetTheme, userEmail, authToken, onLogo
             aria-expanded={themeOpen}
             aria-label="Change theme"
           >
-            <span>{t.icon}</span>
+            <span>{t.statusIcon}</span>
             <span className={styles.themeName}>{t.name}</span>
-            <span className={`${styles.chevron} ${themeOpen ? styles.chevronOpen : ''}`}>▾</span>
           </button>
 
           {themeOpen && (

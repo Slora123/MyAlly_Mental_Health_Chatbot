@@ -136,6 +136,10 @@ function ChatApp({ authToken, setAuthToken }) {
   const [userEmail, setUserEmail] = useState('');
   const [userProfile, setUserProfile] = useState(null);
   const [sidebarKey, setSidebarKey] = useState(0); // used to refresh sidebar after new chat
+  
+  // Avatar states
+  const [myAllyAvatar, setMyAllyAvatar] = useState(null);
+  const [userAvatar, setUserAvatar] = useState(null);
 
   const chatContainerRef = useRef(null);
 
@@ -294,13 +298,24 @@ function ChatApp({ authToken, setAuthToken }) {
             authToken={authToken}
             onLogout={() => handleLogout(setAuthToken)}
             userProfile={userProfile}
+            myAllyAvatar={myAllyAvatar}
+            setMyAllyAvatar={setMyAllyAvatar}
+            userAvatar={userAvatar}
+            setUserAvatar={setUserAvatar}
           />
           <main className="chat-container" ref={chatContainerRef}>
             {messages.length === 0 && (
               <WelcomeBanner onChipClick={(text) => handleSendMessage(text)} />
             )}
             {messages.map((msg, i) => (
-              <MessageBubble key={i} item={msg} theme={theme} animate={i === messages.length - 1} />
+              <MessageBubble 
+                key={i} 
+                item={msg} 
+                theme={theme} 
+                animate={i === messages.length - 1} 
+                botImg={myAllyAvatar || (userProfile?.gender?.toLowerCase() === 'female' ? '/assets/bot_female.png' : (userProfile?.gender?.toLowerCase() === 'male' ? '/assets/bot_male.png' : '/assets/bot_default.png'))}
+                userAvatar={userAvatar}
+              />
             ))}
             {isTyping && <TypingIndicator theme={theme} />}
           </main>

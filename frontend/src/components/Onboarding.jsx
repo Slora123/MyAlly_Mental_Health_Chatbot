@@ -45,20 +45,35 @@ export default function Onboarding({ authToken }) {
       padding: '40px 20px',
       fontFamily: "'Outfit', sans-serif"
     }}>
-      <div className="glass-card" style={{ 
-        width: '94%', 
-        maxWidth: '1000px', 
-        maxHeight: '90vh',
-        overflowY: 'auto',
-        padding: '60px 50px',
-        borderRadius: '40px',
-        background: 'rgba(255, 250, 245, 0.92)', // Soft off-white/beige
-        backdropFilter: 'blur(40px)',
-        WebkitBackdropFilter: 'blur(40px)',
-        border: '1px solid rgba(255, 255, 255, 0.6)',
-        boxShadow: '0 40px 100px -20px rgba(0, 0, 0, 0.08)',
-        animation: 'slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)'
+      <div className="onboarding-card" style={{ 
+        width: '100%', 
+        maxWidth: '700px', 
+        background: 'rgba(255,255,255,0.9)', 
+        backdropFilter: 'blur(30px)', 
+        WebkitBackdropFilter: 'blur(30px)',
+        borderRadius: '32px', 
+        padding: '50px', 
+        boxShadow: '0 40px 100px rgba(0,0,0,0.1)',
+        border: '1px solid rgba(255,255,255,0.8)',
+        position: 'relative'
       }}>
+        <style>{`
+          @media (max-width: 600px) {
+            .onboarding-card {
+              padding: 30px 20px !important;
+              border-radius: 0 !important;
+              height: 100vh;
+              overflow-y: auto;
+            }
+            .onboarding-card h2 {
+              font-size: 1.8rem !important;
+            }
+            .grid-row {
+              grid-template-columns: 1fr !important;
+              gap: 15px !important;
+            }
+          }
+        `}</style>
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
           <h1 style={{ 
             fontSize: '3rem', 
@@ -78,7 +93,7 @@ export default function Onboarding({ authToken }) {
         
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '20px' }}>
           {/* Row 1: Basic Info */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '20px' }}>
+          <div className="grid-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
             <div className="form-group">
               <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '8px', display: 'block', fontSize: '0.95rem' }}>
                 Nickname
@@ -129,7 +144,7 @@ export default function Onboarding({ authToken }) {
           </div>
 
           {/* Row 2: Secondary Info */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="grid-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div className="form-group">
               <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '8px', display: 'block', fontSize: '0.95rem' }}>Birthday</label>
               <input 

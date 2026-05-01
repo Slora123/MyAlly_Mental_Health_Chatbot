@@ -80,7 +80,7 @@ export default function Login({ setAuthToken }) {
         fontFamily: "'Outfit', sans-serif",
         overflow: 'hidden'
       }}>
-        <div style={{
+        <div className="role-selection-card" style={{
           display: 'flex', width: '92%', maxWidth: '1200px', height: '80vh',
           borderRadius: '48px', overflow: 'hidden',
           background: 'rgba(255, 250, 245, 0.85)',
@@ -90,7 +90,7 @@ export default function Login({ setAuthToken }) {
           position: 'relative'
         }}>
           {/* Left Side */}
-          <div style={{ flex: 1, padding: '70px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="login-text-side" style={{ flex: 1, padding: '70px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h1 style={{
               fontSize: '4.8rem', fontWeight: '900', color: '#1e293b',
               marginBottom: '10px', letterSpacing: '-2px', lineHeight: 1
@@ -151,8 +151,8 @@ export default function Login({ setAuthToken }) {
             </div>
           </div>
 
-          {/* Right Side: Image */}
-          <div style={{
+          {/* Right Side: Image (Hide on small mobile) */}
+          <div className="login-image-side" style={{
             flex: 1, background: 'url(/login-mockup.png)',
             backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center', position: 'relative',
@@ -161,6 +161,37 @@ export default function Login({ setAuthToken }) {
         </div>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap');
+          
+          @media (max-width: 900px) {
+            .login-wrapper {
+              overflow-y: auto !important;
+              padding: 20px 0 !important;
+            }
+            .role-selection-card {
+              flex-direction: column !important;
+              height: auto !important;
+              min-height: 94vh !important;
+              width: 94% !important;
+              border-radius: 32px !important;
+              padding-bottom: 20px;
+            }
+            .login-image-side {
+              display: block !important;
+              height: 250px !important;
+              width: 100% !important;
+              border-radius: 0 0 32px 32px !important;
+            }
+            .login-text-side {
+              padding: 40px 24px !important;
+            }
+            h1 {
+              font-size: 2.8rem !important;
+            }
+            p {
+              font-size: 1.1rem !important;
+            }
+          }
+
           .role-option:hover {
             transform: translateY(-5px);
             background: white !important;

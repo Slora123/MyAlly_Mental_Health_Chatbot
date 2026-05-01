@@ -7,6 +7,7 @@ export const THEMES = {
     name: 'Calm Light',
     avatar: '👧',
     status: 'here for you, always 💛',
+    statusIcon: '🌅',
   },
   happy: {
     id: 'happy',
@@ -14,13 +15,15 @@ export const THEMES = {
     name: 'Soft Pink',
     avatar: '🥰',
     status: 'feeling joyful with you ✨',
+    statusIcon: '💗',
   },
   angry: {
     id: 'angry',
     icon: '🔥',
-    name: 'Bad Mood',
+    name: 'Red Mood',
     avatar: '🥺',
     status: "I'm here through the storm 🌩️",
+    statusIcon: '🔥',
   },
   night: {
     id: 'night',
@@ -28,6 +31,7 @@ export const THEMES = {
     name: 'Dark Night',
     avatar: '😴',
     status: 'with you through the night 🌙',
+    statusIcon: '🌙',
   },
 };
 

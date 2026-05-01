@@ -12,7 +12,7 @@ function timeStr(iso) {
   });
 }
 
-export default function MessageBubble({ item, theme, hideAvatar, animate }) {
+export default function MessageBubble({ item, theme, botImg, userAvatar, animate }) {
   const isUser = item.role === 'user';
   const t = THEMES[theme];
   const avatar = isUser ? '👤' : '👧';
@@ -23,8 +23,12 @@ export default function MessageBubble({ item, theme, hideAvatar, animate }) {
       style={animate ? { animation: 'msg-in 0.38s cubic-bezier(0.175,0.885,0.32,1.2) both' } : { animation: 'none' }}
     >
       <div className={styles.avatarWrap} aria-hidden="true">
-        <div className={`${styles.avatar} ${isUser ? styles.avatarUser : styles.avatarBot}`}>
-          {avatar}
+        <div className={`${styles.avatar} ${isUser ? styles.avatarUser : styles.avatarBot}`} style={{ overflow: 'hidden' }}>
+          {isUser ? (
+            userAvatar ? <img src={userAvatar} className={styles.avatarImg} /> : '👤'
+          ) : (
+            botImg ? <img src={botImg} className={styles.avatarImg} /> : '👧'
+          )}
         </div>
       </div>
 
