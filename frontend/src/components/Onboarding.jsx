@@ -5,11 +5,9 @@ export default function Onboarding({ authToken }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nickname: '',
+    phone: '',
+    birthday: '',
     gender: '',
-    preferred_tone: 'Casual',
-    support_style: 'Listening',
-    lifestyle_patterns: '',
-    support_network: '',
     education: ''
   });
 
@@ -97,6 +95,21 @@ export default function Onboarding({ authToken }) {
               />
             </div>
             <div className="form-group">
+              <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '8px', display: 'block', fontSize: '0.95rem' }}>
+                Phone Number
+              </label>
+              <input 
+                type="tel" 
+                name="phone" 
+                className="premium-input" 
+                placeholder="+91..."
+                value={formData.phone} 
+                onChange={handleChange} 
+                required 
+                style={{ width: '100%', padding: '14px 18px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.6)', border: '1px solid #e2e8f0', color: '#1e293b', fontSize: '1rem', outline: 'none' }}
+              />
+            </div>
+            <div className="form-group">
               <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '8px', display: 'block', fontSize: '0.95rem' }}>Gender</label>
               <select 
                 name="gender" 
@@ -113,63 +126,20 @@ export default function Onboarding({ authToken }) {
                 <option value="Prefer not to say">Prefer not to say</option>
               </select>
             </div>
-            <div className="form-group">
-              <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '8px', display: 'block', fontSize: '0.95rem' }}>Tone</label>
-              <select 
-                name="preferred_tone" 
-                className="premium-input" 
-                value={formData.preferred_tone} 
-                onChange={handleChange}
-                style={{ width: '100%', padding: '14px 18px', borderRadius: '16px', background: 'rgba(255,255,255,0.6)', border: '1px solid #e2e8f0', color: '#1e293b', cursor: 'pointer', outline: 'none', fontSize: '1rem' }}
-              >
-                <option value="Casual">Casual</option>
-                <option value="Formal">Formal</option>
-                <option value="Humorous">Humorous</option>
-                <option value="Direct">Direct</option>
-              </select>
-            </div>
           </div>
 
-          {/* Row 2: Support Style */}
-          <div className="form-group">
-            <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '10px', display: 'block', fontSize: '0.95rem' }}>
-              How do you like to be supported?
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-              {['Advice', 'Listening', 'Distraction', 'Motivation'].map(style => (
-                <button
-                  key={style}
-                  type="button"
-                  onClick={() => setFormData({...formData, support_style: style})}
-                  style={{
-                    padding: '12px',
-                    borderRadius: '14px',
-                    border: '1px solid #e2e8f0',
-                    background: formData.support_style === style ? 'linear-gradient(135deg, #833ab4, #fd1d1d)' : 'rgba(255,255,255,0.6)',
-                    color: formData.support_style === style ? 'white' : '#64748b',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: '0.3s'
-                  }}
-                >
-                  {style}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Row 3: Lifestyle & Social */}
+          {/* Row 2: Secondary Info */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div className="form-group">
-              <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '8px', display: 'block', fontSize: '0.95rem' }}>Social Support</label>
+              <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '8px', display: 'block', fontSize: '0.95rem' }}>Birthday</label>
               <input 
-                type="text" 
-                name="support_network" 
-                className="premium-input"
-                placeholder="Who do you talk to?"
-                value={formData.support_network} 
-                onChange={handleChange}
-                style={{ width: '100%', padding: '14px 18px', borderRadius: '16px', background: 'rgba(255,255,255,0.6)', border: '1px solid #e2e8f0', color: '#1e293b', outline: 'none', fontSize: '1rem' }}
+                type="date" 
+                name="birthday" 
+                className="premium-input" 
+                value={formData.birthday} 
+                onChange={handleChange} 
+                required
+                style={{ width: '100%', padding: '14px 18px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.6)', border: '1px solid #e2e8f0', color: '#1e293b', fontSize: '1rem', outline: 'none' }}
               />
             </div>
             <div className="form-group">
@@ -187,20 +157,7 @@ export default function Onboarding({ authToken }) {
             </div>
           </div>
 
-          {/* Row 4: Lifestyle Textarea (More compact) */}
-          <div className="form-group">
-            <label style={{ color: '#1e293b', fontWeight: '700', marginBottom: '8px', display: 'block', fontSize: '0.95rem' }}>
-              Lifestyle & Routines
-            </label>
-            <textarea 
-              name="lifestyle_patterns" 
-              className="premium-input" 
-              placeholder="e.g. I'm a night owl..."
-              value={formData.lifestyle_patterns} 
-              onChange={handleChange} 
-              style={{ width: '100%', padding: '14px 18px', borderRadius: '16px', background: 'rgba(255,255,255,0.6)', border: '1px solid #e2e8f0', color: '#1e293b', minHeight: '60px', outline: 'none', resize: 'none', fontSize: '1rem' }}
-            />
-          </div>
+
 
           <button 
             type="submit" 

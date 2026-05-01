@@ -123,7 +123,8 @@ def chat_logic(user_message: str, history: list, user_profile=None, today=None) 
             from src.app import counselor_service
             name = user_profile.get('nickname') or user_profile.get('name', "bro")
             email = user_profile.get('email', "No email")
-            user_info = f"{name} (Email: {email})"
+            phone = user_profile.get('phone', "No phone provided")
+            user_info = f"{name} (Email: {email}, Phone: {phone})"
             
             # Share ONLY the trigger message for context, no history as per privacy request
             counselor_service.save_crisis_alert(summary, user_info=user_info, trigger_message=user_message)
@@ -154,18 +155,30 @@ def chat_logic(user_message: str, history: list, user_profile=None, today=None) 
             is_safe = True
             intent = "support_only"
 
-    # ── Step 1.5: Extract & persist life events from user message ─────────────
+    # ── Step 1.5: Extract & persist life events from user message ───────────────
     uid = user_profile.get("uid") if user_profile else None
     if uid:
         detected = memory_extractor.extract_events(user_message, today=today)
         if detected:
             app_vector_db.update_life_events(uid, detected)
 
-    # ── Step 1.6: Build proactive context from stored life events ─────────────
+    # ── Step 1.6: Store this message as a long-term memory ────────────────────
+    if uid and memory_extractor.should_store_memory(user_message):
+        app_vector_db.add_user_memory(uid, user_message)
+        print(f"🧠 Memory stored for {uid}: {user_message[:60]}...")
+
+    # ── Step 1.7: Build proactive context from stored life events ─────────────
     proactive_ctx = None
     if uid:
         life_events = app_vector_db.get_life_events(uid)
         proactive_ctx = memory_extractor.get_proactive_context(life_events, today=today)
+
+    # ── Step 1.8: Retrieve relevant past memories + recent context ────────────
+    relevant_memories: list[str] = []
+    recent_memories: list[str] = []
+    if uid:
+        relevant_memories = app_vector_db.get_relevant_memories(uid, user_message, top_n=3)
+        recent_memories = app_vector_db.get_recent_memories(uid, limit=5)
 
     # ── Step 2: Retrieval ─────────────────────────────────────────────────────
     if intent == "greeting":
@@ -187,7 +200,9 @@ def chat_logic(user_message: str, history: list, user_profile=None, today=None) 
     knowledge_ctx = retriever.render_knowledge_context(knowledge_items)
     messages = prompt_builder.build_messages(
         user_message, history, empathy_ctx, knowledge_ctx, user_profile,
-        proactive_context=proactive_ctx
+        proactive_context=proactive_ctx,
+        relevant_memories=relevant_memories,
+        recent_memories=recent_memories,
     )
 
     # ── Step 4: Generation ────────────────────────────────────────────────────

@@ -52,41 +52,52 @@ if not firebase_admin._apps:
 
 security = HTTPBearer()
 
+_firebase_ready = bool(firebase_admin._apps)
+
+if _firebase_ready:
+    print("✅ Firebase Admin SDK is initialized. Real token verification is ACTIVE.")
+else:
+    print("❌ CRITICAL: Firebase Admin SDK is NOT initialized.")
+    print("   ➡ Per-user chat isolation will NOT work.")
+    print("   ➡ Fix: Download firebase-key.json from Firebase Console → Project Settings → Service Accounts.")
+    print("   ➡ Place it at the project root and ensure FIREBASE_CREDENTIALS_PATH=firebase-key.json in .env")
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-    token = credentials.credentials
-    
-    # Check if Firebase is initialized
-    is_configured = firebase_admin._apps or (firebase_cred_path and os.path.exists(firebase_cred_path))
-    
-    # Development bypass if no Firebase configured
-    if not is_configured:
-        if token == "dummy-dev-token":
-            uid = "dev-user-123"
-            user = vector_db.get_user_profile(uid)
-            if not user:
-                user = vector_db.save_user_profile(uid, {"email": "dev@example.com", "name": "Dev User"})
-            return user
+    # Hard DEBUG_AUTH bypass (must be explicitly set to "true")
+    if os.getenv("DEBUG_AUTH", "false").lower() == "true":
+        print("⚠️  DEBUG_AUTH is ENABLED - Bypassing authentication! All users are 'debug-user'.")
+        return {"uid": "debug-user", "email": "debug@example.com", "name": "Debug User"}
+
+    # Reject immediately if Firebase is not initialized
+    if not firebase_admin._apps:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials (Firebase not configured on server)",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Firebase Admin SDK is not initialized on the server. "
+                "Place firebase-key.json in the project root and restart."
+            ),
         )
 
+    token = credentials.credentials
     try:
         decoded_token = auth.verify_id_token(token)
-        uid = decoded_token['uid']
-        
+        uid = decoded_token["uid"]
+        print(f"✅ Auth verified for uid: {uid} ({decoded_token.get('email', 'no email')})")
+
         user = vector_db.get_user_profile(uid)
         if not user:
-            # Create a basic user record if they just signed up
-            email = decoded_token.get('email', '')
-            name = decoded_token.get('name', 'Anonymous')
-            user = vector_db.save_user_profile(uid, {"email": email, "name": name})
-            
+            # First-time login: create a profile for this user
+            email = decoded_token.get("email", "")
+            name = decoded_token.get("name", "Anonymous")
+            print(f"👤 New user detected. Creating profile for: {email}")
+            user = vector_db.save_user_profile(uid, {"uid": uid, "email": email, "name": name})
+
         return user
     except Exception as e:
+        print(f"🔐 Token verification FAILED: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid authentication credentials: {str(e)}",
+            detail=f"Invalid or expired token. Please log in again.",
         )

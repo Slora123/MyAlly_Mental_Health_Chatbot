@@ -96,7 +96,7 @@ def retrieve_empathy_examples(
     top_n: int = 3
 ) -> list[dict]:
     """
-    Step 9.2: Query the empathy collection with top-k=6, then rerank to top_n.
+    Query the empathy collection with top-k=6, then rerank to top_n.
     Always called for support-only and mixed messages.
     """
     candidates = query_collection(collection, user_message, n_results=6)
@@ -108,7 +108,7 @@ def retrieve_knowledge_snippets(
     user_message: str,
 ) -> list[dict]:
     """
-    Step 9.3: Query the knowledge collection with top-k=3.
+    Query the knowledge collection with top-k=3.
     Only called for knowledge-seeking and mixed messages.
     """
     return query_collection(collection, user_message, n_results=3)

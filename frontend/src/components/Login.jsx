@@ -1,63 +1,74 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
-import { useNavigate } from 'react-router-dom';
 
 export default function Login({ setAuthToken }) {
-  const navigate = useNavigate();
-  const [role, setRole] = useState(null); // 'user' or 'admin'
+  const [role, setRole] = useState(null); // 'student' or 'admin'
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
 
   const handleGoogleLogin = async (mode) => {
-    try {
-      console.log("🚀 Starting Google Login...");
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("✅ Firebase Login Success:", result.user.email);
-      
-      const token = await result.user.getIdToken();
-      console.log("🔑 ID Token obtained");
-      setAuthToken(token);
+    if (isLoggingIn) return;
+    setIsLoggingIn(true);
 
-      if (role === 'admin') {
-        console.log("👑 Admin role detected, redirecting to /admin");
-        window.location.href = '/admin';
-      } else {
-        console.log("👤 Student role detected, checking profile...");
-        checkProfile(token, mode);
+    try {
+      // Use popup — works reliably on all browsers (Safari, Chrome, Firefox)
+      const result = await signInWithPopup(auth, googleProvider);
+
+      if (result?.user) {
+        const token = await result.user.getIdToken();
+        console.log('✅ [Login] Popup login successful for:', result.user.email);
+
+        // Write to BOTH storages:
+        // - sessionStorage: used by App.jsx to guard /chat in this tab
+        // - localStorage:   used by API calls for the Bearer token
+        sessionStorage.setItem('myally_token', token);
+        localStorage.setItem('myally_token', token);
+
+        // Navigate to the right place based on profile completion
+        if (role === 'admin') {
+          window.location.href = '/admin';
+          return;
+        }
+
+        // Faster redirect: go to chat by default if signin, go to onboarding if create
+        // But check profile in the background or quickly
+        const profileRes = await fetch('/api/user/profile', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          const hasCompletedOnboarding = !!profile.nickname;
+
+          if (hasCompletedOnboarding) {
+            // Already a member — go to chat even if they clicked "Create"
+            console.log("👋 Existing user detected. Sending to chat.");
+            window.location.href = '/chat';
+          } else {
+            // New user (or incomplete profile) — go to onboarding even if they clicked "Sign In"
+            console.log("🆕 New user detected. Sending to onboarding.");
+            window.location.href = '/onboarding';
+          }
+        } else {
+          // Fallback if profile check fails
+          window.location.href = mode === 'create' ? '/onboarding' : '/chat';
+        }
       }
     } catch (error) {
-      console.error("❌ Login failed:", error);
-      alert("Login failed: " + error.message);
-    }
-  };
-
-  const checkProfile = async (token, mode) => {
-    try {
-      console.log("📡 Calling backend /api/user/profile...");
-      const res = await fetch('/api/user/profile', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      console.log("📡 Backend response status:", res.status);
-
-      if (res.ok) {
-        console.log("✨ Profile check OK, navigating...");
-        if (mode === 'create') {
-          console.log("➡️ Navigating to /onboarding");
-          navigate('/onboarding');
-        } else {
-          console.log("➡️ Navigating to /chat");
-          navigate('/chat');
-        }
-      } else {
-        const errData = await res.json();
-        console.error("❌ Authentication failed on backend:", errData);
-        alert("Authentication failed: " + (errData.detail || "Unknown error"));
+      console.error('❌ Login failed:', error);
+      setIsLoggingIn(false);
+      setStatusMsg('');
+      if (error.code === 'auth/popup-blocked') {
+        alert('Popup was blocked by your browser. Please allow popups for localhost and try again.');
+      } else if (error.code !== 'auth/popup-closed-by-user') {
+        alert('Login failed: ' + error.message);
       }
-    } catch (err) {
-      console.error("❌ Backend connection error:", err);
-      alert("Backend connection error: " + err.message);
     }
   };
 
+
+  // ── Role Selection Screen ──────────────────────────────────────────────────
   if (!role) {
     return (
       <div className="login-wrapper" style={{
@@ -70,34 +81,24 @@ export default function Login({ setAuthToken }) {
         overflow: 'hidden'
       }}>
         <div style={{
-          display: 'flex',
-          width: '92%',
-          maxWidth: '1200px',
-          height: '80vh',
-          borderRadius: '48px',
-          overflow: 'hidden',
-          background: 'rgba(255, 250, 245, 0.85)', // Soft tinted card
-          backdropFilter: 'blur(30px)',
-          WebkitBackdropFilter: 'blur(30px)',
+          display: 'flex', width: '92%', maxWidth: '1200px', height: '80vh',
+          borderRadius: '48px', overflow: 'hidden',
+          background: 'rgba(255, 250, 245, 0.85)',
+          backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
           border: '1px solid rgba(255, 255, 255, 0.5)',
           boxShadow: '0 40px 100px -20px rgba(253, 29, 29, 0.05)',
           position: 'relative'
         }}>
-          {/* Left Side: Content */}
+          {/* Left Side */}
           <div style={{ flex: 1, padding: '70px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h1 style={{
-              fontSize: '4.8rem',
-              fontWeight: '900',
-              color: '#1e293b',
-              marginBottom: '10px',
-              letterSpacing: '-2px',
-              lineHeight: 1
+              fontSize: '4.8rem', fontWeight: '900', color: '#1e293b',
+              marginBottom: '10px', letterSpacing: '-2px', lineHeight: 1
             }}>
               Welcome to <br />
               <span style={{
                 background: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                 display: 'inline-block'
               }}>
                 MyAlly
@@ -112,16 +113,11 @@ export default function Login({ setAuthToken }) {
                 className="role-option"
                 onClick={() => setRole('student')}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.5)',
-                  padding: '40px 30px',
-                  borderRadius: '28px',
-                  cursor: 'pointer',
+                  background: 'rgba(255, 255, 255, 0.5)', padding: '40px 30px',
+                  borderRadius: '28px', cursor: 'pointer',
                   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   border: '1px solid rgba(0,0,0,0.03)',
-                  textAlign: 'left',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
+                  textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '12px'
                 }}
               >
                 <div style={{ color: '#fd1d1d' }}>
@@ -137,16 +133,11 @@ export default function Login({ setAuthToken }) {
                 className="role-option"
                 onClick={() => setRole('admin')}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.5)',
-                  padding: '40px 30px',
-                  borderRadius: '28px',
-                  cursor: 'pointer',
+                  background: 'rgba(255, 255, 255, 0.5)', padding: '40px 30px',
+                  borderRadius: '28px', cursor: 'pointer',
                   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   border: '1px solid rgba(0,0,0,0.03)',
-                  textAlign: 'left',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
+                  textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '12px'
                 }}
               >
                 <div style={{ color: '#833ab4' }}>
@@ -160,18 +151,13 @@ export default function Login({ setAuthToken }) {
             </div>
           </div>
 
-          {/* Right Side: Image Mockup */}
+          {/* Right Side: Image */}
           <div style={{
-            flex: 1,
-            background: 'url(/login-mockup.png)',
-            backgroundSize: '100% 100%',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            position: 'relative',
-            borderRadius: '0 48px 48px 0',
-            backgroundColor: 'transparent'
-          }}>
-          </div>
+            flex: 1, background: 'url(/login-mockup.png)',
+            backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center', position: 'relative',
+            borderRadius: '0 48px 48px 0', backgroundColor: 'transparent'
+          }} />
         </div>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap');
@@ -186,23 +172,17 @@ export default function Login({ setAuthToken }) {
     );
   }
 
+  // ── Auth Action Screen ─────────────────────────────────────────────────────
   return (
     <div className="login-wrapper" style={{
       background: 'linear-gradient(135deg, #f3e8ff 0%, #fce7f3 50%, #ffedd5 100%)',
-      minHeight: '100vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontFamily: "'Outfit', sans-serif"
+      minHeight: '100vh', display: 'flex', justifyContent: 'center',
+      alignItems: 'center', fontFamily: "'Outfit', sans-serif"
     }}>
       <div className="auth-card" style={{
-        width: '100%',
-        maxWidth: '450px',
-        padding: '60px 40px',
-        borderRadius: '40px',
-        background: 'rgba(255, 250, 245, 0.98)',
-        textAlign: 'center',
-        position: 'relative',
+        width: '100%', maxWidth: '450px', padding: '60px 40px',
+        borderRadius: '40px', background: 'rgba(255, 250, 245, 0.98)',
+        textAlign: 'center', position: 'relative',
         boxShadow: '0 30px 60px -12px rgba(0,0,0,0.1)',
         animation: 'slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)',
         border: '1px solid rgba(255, 255, 255, 0.5)'
@@ -210,10 +190,10 @@ export default function Login({ setAuthToken }) {
         <button
           onClick={() => setRole(null)}
           style={{
-            background: 'rgba(0,0,0,0.03)', border: 'none', color: '#64748b', cursor: 'pointer',
-            position: 'absolute', top: '30px', left: '30px', fontSize: '1.2rem',
-            width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: '0.3s'
+            background: 'rgba(0,0,0,0.03)', border: 'none', color: '#64748b',
+            cursor: 'pointer', position: 'absolute', top: '30px', left: '30px',
+            fontSize: '1.2rem', width: '40px', height: '40px', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.3s'
           }}
           className="back-btn"
         >
@@ -231,39 +211,35 @@ export default function Login({ setAuthToken }) {
           <button
             className="auth-btn"
             onClick={() => handleGoogleLogin('signin')}
+            disabled={isLoggingIn}
             style={{
               background: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
-              color: 'white',
-              fontWeight: '800',
-              padding: '18px',
-              border: 'none',
-              borderRadius: '16px',
-              cursor: 'pointer',
-              fontSize: '1.1rem',
-              transition: '0.3s',
-              boxShadow: '0 10px 20px rgba(253, 29, 29, 0.2)'
+              color: 'white', fontWeight: '800', padding: '18px', border: 'none',
+              borderRadius: '16px', cursor: isLoggingIn ? 'not-allowed' : 'pointer',
+              fontSize: '1.1rem', transition: '0.3s',
+              boxShadow: '0 10px 20px rgba(253, 29, 29, 0.2)',
+              opacity: isLoggingIn ? 0.7 : 1
             }}
           >
-            {role === 'student' ? 'Sign In with Google' : 'Continue with Google'}
+            {isLoggingIn ? 'Logging in...' : (role === 'student' ? 'Sign In with Google' : 'Continue with Google')}
           </button>
 
-          <button
-            className="create-btn"
-            onClick={() => handleGoogleLogin('create')}
-            style={{
-              background: 'rgba(0,0,0,0.03)',
-              color: '#1e293b',
-              fontWeight: '700',
-              padding: '16px',
-              border: '1px solid rgba(0,0,0,0.05)',
-              borderRadius: '16px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              transition: '0.3s'
-            }}
-          >
-            Create Account
-          </button>
+          {role === 'student' && (
+            <button
+              className="create-btn"
+              onClick={() => handleGoogleLogin('create')}
+              disabled={isLoggingIn}
+              style={{
+                background: 'rgba(0,0,0,0.03)', color: '#1e293b', fontWeight: '700',
+                padding: '16px', border: '1px solid rgba(0,0,0,0.05)',
+                borderRadius: '16px', cursor: isLoggingIn ? 'not-allowed' : 'pointer',
+                fontSize: '1rem', transition: '0.3s',
+                opacity: isLoggingIn ? 0.7 : 1
+              }}
+            >
+              {isLoggingIn ? 'Please wait...' : 'Create Account'}
+            </button>
+          )}
 
           <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '15px' }}>
             By continuing, you agree to our Terms of Service.

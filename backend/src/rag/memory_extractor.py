@@ -11,6 +11,34 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional
 
+# ── Memory storage filter ─────────────────────────────────────────────────────
+# Keywords that signal the user is sharing something personal and worth storing.
+_PERSONAL_SIGNALS = frozenset({
+    "my friend", "my best friend", "my friends", "my family", "my mom",
+    "my dad", "my mother", "my father", "my sister", "my brother",
+    "my boyfriend", "my girlfriend", "my partner", "my teacher", "my prof",
+    "my boss", "my crush", "my roommate", "my classmate",
+    "i feel", "i felt", "i am", "i'm", "i was", "i have", "i had",
+    "i love", "i hate", "i want", "i need", "i think", "i always", "i never",
+    "i used to", "i can't", "i couldn't", "i won't", "i don't", "i wish",
+    "stressed", "anxious", "depressed", "lonely", "sad", "happy", "angry",
+    "scared", "nervous", "worried", "frustrated", "excited", "overwhelmed",
+    "college", "school", "exam", "class", "study", "job", "work", "internship",
+    "birthday", "anniversary", "breakup", "fight", "argument", "cried",
+    "hurt", "betrayed", "ignored", "rejected", "failed", "passed",
+})
+
+
+def should_store_memory(message: str) -> bool:
+    """
+    Return True if this user message is worth storing as a long-term memory.
+    Filters out greetings, one-word replies, and trivial messages.
+    """
+    if len(message.strip().split()) < 6:
+        return False
+    msg_lower = message.lower()
+    return any(signal in msg_lower for signal in _PERSONAL_SIGNALS)
+
 # Month name mapping (longer names first to avoid partial matches)
 MONTHS: dict[str, int] = {
     "january": 1, "jan": 1,
@@ -34,6 +62,12 @@ EXAM_KEYWORDS: frozenset[str] = frozenset({
 
 EVENT_KEYWORDS: frozenset[str] = frozenset({
     "presentation", "interview", "submission", "deadline", "project", "assignment",
+})
+
+BIRTHDAY_KEYWORDS: frozenset[str] = frozenset({
+    "birthday", "bday", "b-day", "birth day",
+    "janamdin", "janmdin",  # Hindi
+    "wadhdiws",             # Punjabi
 })
 
 # Build month alternation pattern, longest-first to avoid partial matches
@@ -131,6 +165,19 @@ def extract_events(message: str, today: Optional[datetime] = None) -> dict:
                         "detected_at": today.strftime("%Y-%m-%d"),
                     }
 
+    # ── Single exam day detection ("exam tomorrow", "exam today") ────────────
+    if has_exam_kw and "exam_period" not in events:
+        for phrase, delta in [("tomorrow", 1), ("today", 0), ("kal", 1), ("aaj", 0)]:
+            if phrase in text:
+                exam_date = (today + timedelta(days=delta)).strftime("%Y-%m-%d")
+                events["exam_period"] = {
+                    "start": exam_date,
+                    "end": exam_date,
+                    "label": "exam",
+                    "detected_at": today.strftime("%Y-%m-%d"),
+                }
+                break
+
     # ── One-off event detection (presentation, interview, etc.) ─────────────
     for kw in EVENT_KEYWORDS:
         if kw in text:
@@ -145,6 +192,50 @@ def extract_events(message: str, today: Optional[datetime] = None) -> dict:
                         "label": kw,
                         "detected_at": today.strftime("%Y-%m-%d"),
                     }
+
+    # ── Birthday detection ──────────────────────────────────────────────────
+    has_bday_kw = any(kw in text for kw in BIRTHDAY_KEYWORDS)
+    if has_bday_kw:
+        # "birthday on may 6" / "bday tomorrow" / "birthday next week"
+        bday_date = None
+
+        # "birthday tomorrow / today"
+        for phrase, delta in [("tomorrow", 1), ("today", 0), ("kal", 1), ("aaj", 0)]:
+            if phrase in text:
+                bday_date = (today + timedelta(days=delta)).strftime("%Y-%m-%d")
+                break
+
+        # "birthday on / in X days"
+        if not bday_date:
+            m = re.search(r"(?:in|after)\s+(\d+)\s+days?", text)
+            if m:
+                bday_date = (today + timedelta(days=int(m.group(1)))).strftime("%Y-%m-%d")
+
+        # "birthday on <month day>"
+        if not bday_date:
+            m = re.search(
+                rf"(?:on|is|was)?\s*(?:the)?\s*({_MONTH_ALT})\s+(\d{{1,2}})(?:st|nd|rd|th)?\b", text
+            )
+            if m:
+                month = MONTHS.get(m.group(1))
+                if month:
+                    bday_date = _build_date(today, month, int(m.group(2)))
+
+        if not bday_date:
+            m = re.search(
+                rf"(\d{{1,2}})(?:st|nd|rd|th)?\s+({_MONTH_ALT})\b", text
+            )
+            if m:
+                month = MONTHS.get(m.group(2))
+                if month:
+                    bday_date = _build_date(today, month, int(m.group(1)))
+
+        if bday_date:
+            events["birthday"] = {
+                "date": bday_date,
+                "label": "birthday",
+                "detected_at": today.strftime("%Y-%m-%d"),
+            }
 
     return events
 
@@ -212,5 +303,34 @@ def get_proactive_context(life_events: dict, today: Optional[datetime] = None) -
                     )
             except ValueError:
                 pass
+
+    # ── Birthday ─────────────────────────────────────────────────────────────
+    bday = life_events.get("birthday")
+    if bday:
+        bday_date = bday.get("date", "")
+        if bday_date:
+            if bday_date == today_str:
+                hints.append(
+                    "[MEMORY] TODAY IS THIS STUDENT'S BIRTHDAY! 🎂 "
+                    "Open with a warm, heartfelt birthday wish — make them feel special. "
+                    "Keep it genuine and fun, 1-2 lines max. Use 🎂🎉🎈 emojis."
+                )
+            else:
+                try:
+                    days_until = (datetime.strptime(bday_date, "%Y-%m-%d") - today).days
+                    if days_until == 0:
+                        pass  # Already handled above
+                    elif 0 < days_until <= 3:
+                        hints.append(
+                            f"[MEMORY] The student's birthday is in {days_until} day(s) on {bday_date}. "
+                            f"If natural, say something warm and exciting about their upcoming birthday — 1 short line."
+                        )
+                    elif days_until < 0 and abs(days_until) <= 1:
+                        hints.append(
+                            f"[MEMORY] The student's birthday was yesterday ({bday_date}). "
+                            f"If natural, ask how they celebrated — 1 short warm line."
+                        )
+                except ValueError:
+                    pass
 
     return "\n".join(hints) if hints else None
