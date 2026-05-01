@@ -20,11 +20,15 @@ if __name__ == "__main__":
     if not db_path.exists() or not any(db_path.iterdir()):
         print("⚠️  Vector database missing! Bootstrapping RAG index...")
         
-        # Decompress datasets if needed
+        # Reconstruct knowledge dataset from chunks if needed
         data_dir = Path(__file__).resolve().parents[1] / "database" / "data" / "processed"
-        for gz_file in data_dir.glob("*.jsonl.gz"):
-            print(f"Decompressing {gz_file.name}...")
-            subprocess.run(["gzip", "-d", "-f", str(gz_file)], check=False)
+        parts = sorted(data_dir.glob("knowledge_part_*"))
+        if parts:
+            print("Combining knowledge dataset parts...")
+            with open(data_dir / "knowledge_documents.jsonl", "wb") as outfile:
+                for part in parts:
+                    with open(part, "rb") as infile:
+                        outfile.write(infile.read())
             
         build_script = Path(__file__).resolve().parents[1] / "database" / "build_rag_index.py"
         subprocess.run(["python", str(build_script)], check=False)
