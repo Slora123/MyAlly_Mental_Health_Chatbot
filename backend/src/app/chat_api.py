@@ -23,7 +23,6 @@ from . import vector_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # No SQL DB to initialize anymore
     yield
 
 app = FastAPI(title="MyAlly Mental-Health Support", lifespan=lifespan)

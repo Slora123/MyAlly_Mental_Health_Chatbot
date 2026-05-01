@@ -32,12 +32,23 @@ export default function Login({ setAuthToken }) {
         }
 
         // Faster redirect: go to chat by default if signin, go to onboarding if create
-        // But check profile in the background or quickly
-        const profileRes = await fetch('/api/user/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        // But check profile in the background or quickly with a timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+        let profileRes = null;
+        try {
+          profileRes = await fetch('/api/user/profile', {
+            headers: { 'Authorization': `Bearer ${token}` },
+            signal: controller.signal
+          });
+        } catch (e) {
+          console.warn("⚠️ Profile fetch timed out or failed. Using fallback navigation.");
+        } finally {
+          clearTimeout(timeoutId);
+        }
         
-        if (profileRes.ok) {
+        if (profileRes && profileRes.ok) {
           const profile = await profileRes.json();
           const hasCompletedOnboarding = !!profile.nickname;
 
@@ -108,7 +119,7 @@ export default function Login({ setAuthToken }) {
               Your dedicated space for mental wellness and support.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="role-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div
                 className="role-option"
                 onClick={() => setRole('student')}
@@ -151,12 +162,17 @@ export default function Login({ setAuthToken }) {
             </div>
           </div>
 
-          {/* Right Side: Image (Hide on small mobile) */}
+          {/* Right Side: Image */}
           <div className="login-image-side" style={{
-            flex: 1, background: 'url(/login-mockup.png)',
-            backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center', position: 'relative',
-            borderRadius: '0 48px 48px 0', backgroundColor: 'transparent'
+            flex: 1, 
+            background: 'url(/login-mockup.png)',
+            backgroundSize: 'cover', 
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'top center', 
+            position: 'relative',
+            borderRadius: '0 48px 48px 0', 
+            backgroundColor: 'transparent',
+            minHeight: '300px'
           }} />
         </div>
         <style>{`
@@ -165,27 +181,38 @@ export default function Login({ setAuthToken }) {
           @media (max-width: 900px) {
             .login-wrapper {
               overflow-y: auto !important;
-              padding: 20px 0 !important;
+              padding: 20px 15px !important; /* Added side space */
             }
             .role-selection-card {
               flex-direction: column !important;
               height: auto !important;
-              min-height: 94vh !important;
-              width: 94% !important;
+              width: 100% !important;
               border-radius: 32px !important;
               padding-bottom: 20px;
+              margin: 0 auto;
+            }
+            .role-grid {
+              grid-template-columns: 1fr !important; /* Stack Student/Counselor vertically */
             }
             .login-image-side {
               display: block !important;
-              height: 250px !important;
+              height: 200px !important;
               width: 100% !important;
+              background-size: cover !important;
+              background-position: center !important;
               border-radius: 0 0 32px 32px !important;
+              order: 2; /* Move image below text on mobile */
             }
             .login-text-side {
               padding: 40px 24px !important;
+              order: 1;
+            }
+            .auth-card {
+              margin: 0 15px !important; /* Space from left and right */
+              padding: 40px 24px !important;
             }
             h1 {
-              font-size: 2.8rem !important;
+              font-size: 2.5rem !important;
             }
             p {
               font-size: 1.1rem !important;

@@ -2,20 +2,15 @@
 src/rag/embeddings.py
 """
 
-import torch
+import os
 from chromadb.utils import embedding_functions
 
-MODEL_NAME = "all-MiniLM-L6-v2"
-
-def get_device() -> str:
-    if torch.cuda.is_available():
-        return "cuda"
-    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-        return "mps"
-    return "cpu"
-
-def get_embedding_function() -> embedding_functions.SentenceTransformerEmbeddingFunction:
-    return embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name=MODEL_NAME,
-        device=get_device(),
+def get_embedding_function() -> embedding_functions.HuggingFaceHubEmbeddingFunction:
+    api_key = os.getenv("HUGGINGFACE_API_TOKEN")
+    if not api_key:
+        print("⚠️ WARNING: HUGGINGFACE_API_TOKEN not found. Vector search will fail.")
+    
+    return embedding_functions.HuggingFaceHubEmbeddingFunction(
+        api_key=api_key,
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
     )

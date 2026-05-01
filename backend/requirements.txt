@@ -2,8 +2,6 @@ fastapi
 uvicorn
 huggingface_hub
 chromadb
-sentence-transformers
-torch
 python-dotenv
 pandas
 requests
