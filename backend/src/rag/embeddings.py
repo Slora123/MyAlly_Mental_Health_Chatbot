@@ -6,9 +6,9 @@ import os
 from chromadb.utils import embedding_functions
 
 def get_embedding_function():
-    api_key = os.getenv("HUGGINGFACE_API_TOKEN")
+    api_key = os.getenv("HUGGINGFACE_API_TOKEN") or os.getenv("HUGGINGFACE_TOKEN") or os.getenv("HF_TOKEN")
     if not api_key:
-        print("⚠️ WARNING: HUGGINGFACE_API_TOKEN not found in environment.")
+        print("⚠️ WARNING: Hugging Face API Token not found in environment.")
     
     return embedding_functions.HuggingFaceHubEmbeddingFunction(
         api_key=api_key,

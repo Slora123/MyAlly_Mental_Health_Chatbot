@@ -26,6 +26,7 @@ _client = None
 def get_client():
     global _client
     if _client is None:
+        os.makedirs(DB_PATH, exist_ok=True)
         _client = chromadb.PersistentClient(path=DB_PATH)
     return _client
 

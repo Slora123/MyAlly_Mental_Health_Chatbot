@@ -95,9 +95,15 @@ def get_current_user(
             user = vector_db.save_user_profile(uid, {"uid": uid, "email": email, "name": name})
 
         return user
-    except Exception as e:
-        print(f"🔐 Token verification FAILED: {e}")
+    except auth.InvalidIdTokenError as e:
+        print(f"🔐 Invalid Token Error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid or expired token. Please log in again.",
+            detail="Invalid or expired token. Please log in again.",
+        )
+    except Exception as e:
+        print(f"💥 Internal Server Error during auth profile creation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch or create user profile: {str(e)}",
         )
