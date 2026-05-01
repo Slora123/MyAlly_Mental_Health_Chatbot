@@ -10,7 +10,7 @@ def get_embedding_function():
     if not api_key:
         print("⚠️ WARNING: Hugging Face API Token not found in environment.")
     
-    return embedding_functions.HuggingFaceHubEmbeddingFunction(
+    return embedding_functions.HuggingFaceEmbeddingFunction(
         api_key=api_key,
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
