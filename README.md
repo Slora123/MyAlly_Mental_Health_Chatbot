@@ -1,3 +1,12 @@
+---
+title: MyAlly
+emoji: 🛡️
+colorFrom: purple
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # MyAlly: A Premium AI Mental-Health Companion 🛡️✨
 
 **MyAlly** is a state-of-the-art, empathy-aware mental health support chatbot designed specifically for students. It combines **Retrieval-Augmented Generation (RAG)** with a personalized memory layer and a robust crisis escalation protocol to provide a safe, supportive, and human-like experience.
