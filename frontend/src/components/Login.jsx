@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { useState } from 'react';
+import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
 export default function Login({ setAuthToken }) {
@@ -7,67 +7,28 @@ export default function Login({ setAuthToken }) {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
 
-  // Handle redirect result on mount
-  useEffect(() => {
-    const handleRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          const token = await result.user.getIdToken();
-          console.log('✅ [Login] Redirect login successful for:', result.user.email);
-          
-          sessionStorage.setItem('myally_token', token);
-          localStorage.setItem('myally_token', token);
-
-          // We need the role again after redirect - fallback to student if lost
-          const storedRole = localStorage.getItem('myally_login_role') || 'student';
-          
-          if (storedRole === 'admin') {
-            window.location.href = '/admin';
-          } else {
-            window.location.href = '/chat';
-          }
-        }
-      } catch (error) {
-        console.error('❌ Redirect login error:', error);
-        setIsLoggingIn(false);
-      }
-    };
-    handleRedirect();
-  }, []);
-
   const handleGoogleLogin = async (mode) => {
     if (isLoggingIn) return;
     setIsLoggingIn(true);
 
     try {
-      // Store role in localStorage so we remember it after redirect
-      localStorage.setItem('myally_login_role', role);
-      localStorage.setItem('myally_login_mode', mode);
-
-      // Use Redirect - safer for iframes/Hugging Face
-      await signInWithRedirect(auth, googleProvider);
+      // Use popup — works reliably on the direct .hf.space link
+      const result = await signInWithPopup(auth, googleProvider);
 
       if (result?.user) {
         const token = await result.user.getIdToken();
         console.log('✅ [Login] Popup login successful for:', result.user.email);
 
-        // Write to BOTH storages:
-        // - sessionStorage: used by App.jsx to guard /chat in this tab
-        // - localStorage:   used by API calls for the Bearer token
         sessionStorage.setItem('myally_token', token);
         localStorage.setItem('myally_token', token);
 
-        // Navigate to the right place based on profile completion
         if (role === 'admin') {
           window.location.href = '/admin';
           return;
         }
 
-        // Faster redirect: go to chat by default if signin, go to onboarding if create
-        // But check profile in the background or quickly with a timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000); 
 
         let profileRes = null;
         try {
@@ -86,16 +47,11 @@ export default function Login({ setAuthToken }) {
           const hasCompletedOnboarding = !!profile.nickname;
 
           if (hasCompletedOnboarding) {
-            // Already a member — go to chat even if they clicked "Create"
-            console.log("👋 Existing user detected. Sending to chat.");
             window.location.href = '/chat';
           } else {
-            // New user (or incomplete profile) — go to onboarding even if they clicked "Sign In"
-            console.log("🆕 New user detected. Sending to onboarding.");
             window.location.href = '/onboarding';
           }
         } else {
-          // Fallback if profile check fails
           window.location.href = mode === 'create' ? '/onboarding' : '/chat';
         }
       }
@@ -104,7 +60,7 @@ export default function Login({ setAuthToken }) {
       setIsLoggingIn(false);
       setStatusMsg('');
       if (error.code === 'auth/popup-blocked') {
-        alert('Popup was blocked by your browser. Please allow popups for localhost and try again.');
+        alert('Popup was blocked by your browser. Please allow popups and try again.');
       } else if (error.code !== 'auth/popup-closed-by-user') {
         alert('Login failed: ' + error.message);
       }
