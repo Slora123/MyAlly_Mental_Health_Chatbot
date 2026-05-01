@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import { useState, useEffect } from 'react';
+import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
 export default function Login({ setAuthToken }) {
@@ -7,13 +7,46 @@ export default function Login({ setAuthToken }) {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
 
+  // Handle redirect result on mount
+  useEffect(() => {
+    const handleRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          const token = await result.user.getIdToken();
+          console.log('✅ [Login] Redirect login successful for:', result.user.email);
+          
+          sessionStorage.setItem('myally_token', token);
+          localStorage.setItem('myally_token', token);
+
+          // We need the role again after redirect - fallback to student if lost
+          const storedRole = localStorage.getItem('myally_login_role') || 'student';
+          
+          if (storedRole === 'admin') {
+            window.location.href = '/admin';
+          } else {
+            window.location.href = '/chat';
+          }
+        }
+      } catch (error) {
+        console.error('❌ Redirect login error:', error);
+        setIsLoggingIn(false);
+      }
+    };
+    handleRedirect();
+  }, []);
+
   const handleGoogleLogin = async (mode) => {
     if (isLoggingIn) return;
     setIsLoggingIn(true);
 
     try {
-      // Use popup — works reliably on all browsers (Safari, Chrome, Firefox)
-      const result = await signInWithPopup(auth, googleProvider);
+      // Store role in localStorage so we remember it after redirect
+      localStorage.setItem('myally_login_role', role);
+      localStorage.setItem('myally_login_mode', mode);
+
+      // Use Redirect - safer for iframes/Hugging Face
+      await signInWithRedirect(auth, googleProvider);
 
       if (result?.user) {
         const token = await result.user.getIdToken();
