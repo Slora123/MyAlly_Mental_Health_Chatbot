@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../firebase';
 
 export default function Login({ setAuthToken }) {
+  const navigate = useNavigate();
   const [role, setRole] = useState(null); // 'student' or 'admin'
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
@@ -21,9 +23,12 @@ export default function Login({ setAuthToken }) {
 
         sessionStorage.setItem('myally_token', token);
         localStorage.setItem('myally_token', token);
+        
+        // CRITICAL: Tell App.jsx we are logged in so the gatekeeper lets us through
+        setAuthToken(token);
 
         if (role === 'admin') {
-          window.location.href = '/admin';
+          navigate('/admin');
           return;
         }
 
@@ -47,12 +52,12 @@ export default function Login({ setAuthToken }) {
           const hasCompletedOnboarding = !!profile.nickname;
 
           if (hasCompletedOnboarding) {
-            window.location.href = '/chat';
+            navigate('/chat');
           } else {
-            window.location.href = '/onboarding';
+            navigate('/onboarding');
           }
         } else {
-          window.location.href = mode === 'create' ? '/onboarding' : '/chat';
+          navigate(mode === 'create' ? '/onboarding' : '/chat');
         }
       }
     } catch (error) {
