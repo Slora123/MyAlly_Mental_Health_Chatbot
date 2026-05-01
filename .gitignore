@@ -1,4 +1,4 @@
-# Python
+# --- Python & System ---
 __pycache__/
 *.py[cod]
 *$py.class
@@ -6,19 +6,32 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
 
-# Secret tokens and keys
+# --- Secrets & Keys (CRITICAL) ---
 .env
 firebase-key.json
 backend/firebase-key.json
 
-# Database and Logs
+# --- Frontend ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# --- Database & Heavy Files (Kicked out for size) ---
+*.csv
+*.jsonl
+*.db
 chroma_db/
+database/chroma_db/
 rag_reference_logs.jsonl
 
-# System Files
-.DS_Store
-Thumbs.db
+# Ignore the heavy dataset folders entirely
+database/empatheticdialogues*/
+database/mhqa-main/
 
-# Jupyter Notebook Checkpoints
-.ipynb_checkpoints/
+*.png
+*.svg
+*.ico
