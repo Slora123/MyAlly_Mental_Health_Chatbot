@@ -6,12 +6,12 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 console.log("Firebase API Key loaded:", import.meta.env.VITE_FIREBASE_API_KEY ? "Yes (starts with " + import.meta.env.VITE_FIREBASE_API_KEY.substring(0,5) + ")" : "NO - IT IS UNDEFINED");
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyDLDMXicIqQldzGuK-8E9QR4s6T9I0_DoI",
+  authDomain: "myally-f6e6d.firebaseapp.com",
+  projectId: "myally-f6e6d",
+  storageBucket: "myally-f6e6d.firebasestorage.app",
+  messagingSenderId: "233196735793",
+  appId: "1:233196735793:web:bb386a5164f9edbe08f410"
 };
 
 // Initialize Firebase
