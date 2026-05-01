@@ -19,7 +19,7 @@ from pathlib import Path
 
 import chromadb
 
-BATCH_SIZE = 200
+BATCH_SIZE = 20
 
 
 def rebuild_collection(
@@ -65,15 +65,26 @@ def upsert_documents(
 ) -> None:
     """
     Batch-upsert document dicts into a Chroma collection.
-
-    Each dict must have keys: id, document, metadata.
+    Includes retry logic for Hugging Face API rate limits.
     """
+    import time
     for batch in batch_items(items, BATCH_SIZE):
-        collection.upsert(
-            ids=[item["id"] for item in batch],
-            documents=[item["document"] for item in batch],
-            metadatas=[item["metadata"] for item in batch],
-        )
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                collection.upsert(
+                    ids=[item["id"] for item in batch],
+                    documents=[item["document"] for item in batch],
+                    metadatas=[item["metadata"] for item in batch],
+                )
+                break
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to upsert batch after {max_retries} attempts. Error: {e}")
+                    raise
+                sleep_time = (2 ** attempt) * 2
+                print(f"  [Rate Limit/Error] Retrying in {sleep_time}s... (Attempt {attempt+1}/{max_retries})")
+                time.sleep(sleep_time)
 
 
 def save_jsonl(records: list[dict], path: Path) -> None:

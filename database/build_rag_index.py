@@ -64,17 +64,25 @@ def main() -> None:
     if skip_if_populated and empathy_collection.count() > 0 and knowledge_collection.count() > 0:
         print("\n  ✅ Collections are already populated. Skipping heavy data processing.")
     else:
-        # ── Step 1: Build processed document lists ────────────────────────────────
-        print("\n[1/4] Building empathy documents …")
-        empathy_docs = build_empathy_docs()
+        # ── Step 1 & 2: Build or Load processed document lists ────────────────────
+        empathy_jsonl = PROCESSED_DIR / "empathy_documents.jsonl"
+        knowledge_jsonl = PROCESSED_DIR / "knowledge_documents.jsonl"
+        
+        from src.rag.index_builder import load_jsonl
 
-        print("\n[2/4] Building knowledge documents …")
-        knowledge_docs = build_knowledge_docs()
-
-        # ── Step 2: Save JSONL outputs (Phase 2 requirement) ─────────────────────
-        print("\n[2.5/4] Saving processed JSONL records …")
-        save_jsonl(empathy_docs, PROCESSED_DIR / "empathy_documents.jsonl")
-        save_jsonl(knowledge_docs, PROCESSED_DIR / "knowledge_documents.jsonl")
+        if empathy_jsonl.exists() and knowledge_jsonl.exists():
+            print("\n[1/4] Loading pre-processed JSONL records …")
+            empathy_docs = load_jsonl(empathy_jsonl)
+            knowledge_docs = load_jsonl(knowledge_jsonl)
+        else:
+            print("\n[1/4] Building empathy documents from CSVs …")
+            empathy_docs = build_empathy_docs()
+            print("\n[2/4] Building knowledge documents from CSVs …")
+            knowledge_docs = build_knowledge_docs()
+            
+            print("\n[2.5/4] Saving processed JSONL records …")
+            save_jsonl(empathy_docs, empathy_jsonl)
+            save_jsonl(knowledge_docs, knowledge_jsonl)
 
         # Chroma expects `document` key (not `text`) for the documents list
         def _to_chroma(docs: list[dict]) -> list[dict]:
