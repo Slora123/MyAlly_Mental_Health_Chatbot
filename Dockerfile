@@ -21,9 +21,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
 COPY backend/ ./backend/
-
-# Copy the built vector database
 COPY database/ ./database/
+
+# Reconstruct split datasets and build RAG index
+# This generates database/chroma_db inside the container
+RUN cat database/data/processed/knowledge_part_* > database/data/processed/knowledge_documents.jsonl && \
+    export PYTHONPATH=$PYTHONPATH:/app/backend && \
+    python database/build_rag_index.py && \
+    rm -rf database/data/processed/knowledge_part_* database/data/processed/*.jsonl
 
 # Copy the built frontend from Stage 1
 # This places the 'dist' folder where the backend expects it (../../frontend/dist)
