@@ -26,16 +26,18 @@ frontend/dist/
 *.db
 rag_reference_logs.jsonl
 
+# Ignore everything in chroma_db except the parts and subdirectories
+database/chroma_db/*
+!database/chroma_db/chroma.sqlite3.b64.*
+!database/chroma_db/*/
+
 # Ignore the heavy raw dataset folders
 database/empatheticdialogues*/
 database/mhqa-main/
 
-# UNIGNORE processed dataset PARTS (under 10MB each) for deployment
-# We DO NOT push the large .sqlite3 or .jsonl files to avoid HF size limits.
-# The server will reconstruct files from these parts.
+# UNIGNORE processed dataset PARTS
 !database/data/processed/knowledge_part_*
 !database/data/processed/empathy_documents.jsonl
-!database/chroma_db/chroma.sqlite3.b64.*
 
 # UNIGNORE essential UI assets
 !*.png
@@ -43,4 +45,3 @@ database/mhqa-main/
 !*.ico
 !*.jpg
 !*.jpeg
-database/chroma_db/
