@@ -39,6 +39,16 @@ class OnboardingRequest(BaseModel):
     support_network: str = None
     education: str = None
 
+from src.app.auth import _firebase_ready
+
+@app.get("/api/health")
+async def health_check():
+    return {
+        "status": "online",
+        "firebase_initialized": _firebase_ready,
+        "firestore_connected": firestore_db._db is not None
+    }
+
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None # If None, creates a new session
