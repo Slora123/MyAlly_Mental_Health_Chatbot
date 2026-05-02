@@ -15,30 +15,33 @@ pinned: false
 
 ## 🌟 Key Features
 
-### 1. 🧠 Personalized Empathy & Memory
-- **Onboarding Flow:** Collects user preferences (tone, gender, support style, lifestyle) during the first login to tailor the AI's persona.
-- **PostgreSQL Persistence:** All chat sessions and user profiles are stored in a database (SQLAlchemy + Postgres), ensuring long-term memory across devices.
-- **Contextual RAG:** Uses dual Chroma collections (`empathy` and `knowledge`) to ground responses in verified mental health data and high-empathy dialogue patterns.
+### 1. 🤝 Empathetic Chat Interface
+- **Personalized Tone:** Acts like a supportive friend with a professional, empathetic tone.
+- **Multilingual Support:** Understands Hinglish/Minglish and simple English (Roman script).
+- **Mood-Based Themes:** Glassmorphism UI with themes that change automatically based on user message keywords.
 
-### 2. 🛡️ Crisis Guardian Protocol
-- **AI Safety Layer:** Uses a specialized safety pipeline to detect high-risk or unstable user messages.
-- **Counselor Dashboard:** Automatically escalates genuine crises to an internal **Guardian Panel** (`/admin`) with a full situation summary and chat history.
-- **Immediate Support:** Provides instant crisis resources and helpline options to users in distress.
+### 2. 🧠 Context Awareness & Memory
+- **Persistent History:** Remembers past conversations and maintains chat history for personalized, human-like interactions.
+- **Cross-Deployment Persistence:** Uses Google Firestore to ensure your profile and chats stay saved forever.
 
-### 3. 💎 Premium Glassmorphism UI
-- **Modern Design:** A responsive, dark-mode interface with smooth animations and interactive mood-based theme switching.
-- **Chat Sidebar:** A persistent sidebar for managing multiple chat sessions, similar to top-tier AI applications.
-- **Firebase Auth:** Secure Google Sign-In integration for a seamless user experience.
+### 3. 📚 RAG-Based Responses
+- **Verified Guidance:** Uses ChromaDB with verified resources to provide accurate and reliable guidance.
+
+### 4. 🛡️ Real-time Crisis Escalation
+- **Risk Detection:** Detects high-risk intent and sends instant alerts to counselors via the web portal.
+
+### 5. 🔒 Secure Authentication
+- **Verified Access:** Firebase + JWT-based login ensuring user privacy and secure access.
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Backend:** FastAPI (Python), SQLAlchemy, Uvicorn
+- **Backend:** FastAPI (Python), Uvicorn
 - **Frontend:** React + Vite, CSS3 (Vanilla), React Router
 - **AI/LLM:** HuggingFace Inference API (Qwen 2.5 7B Instruct)
-- **Vector DB:** ChromaDB (Sentence-Transformers)
-- **Database:** PostgreSQL (via Supabase or local)
+- **Primary Database:** Google Firestore (Persistence)
+- **Vector DB:** ChromaDB (RAG & Memory)
 - **Auth:** Firebase Authentication
 
 ---
@@ -71,9 +74,6 @@ Create a **single `.env` file** in the project root with the following keys:
 ```env
 # AI Brain
 HUGGINGFACE_TOKEN="your_hf_token"
-
-# Database (PostgreSQL/Supabase)
-POSTGRES_URL="postgresql://user:password@host:5432/postgres"
 
 # Firebase (Frontend)
 VITE_FIREBASE_API_KEY="..."
