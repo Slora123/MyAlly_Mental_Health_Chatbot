@@ -24,12 +24,12 @@ COPY backend/ ./backend/
 COPY database/ ./database/
 RUN mkdir -p database/data/processed database/chroma_db
 
-# Stitch the knowledge dataset parts back together BEFORE building the index
+# Stitch the knowledge dataset parts and pre-built chroma database back together
 RUN cat database/data/processed/knowledge_part_* > database/data/processed/knowledge_documents.jsonl || true
+RUN cat database/chroma_db/chroma.sqlite3.b64.* | base64 -d > database/chroma_db/chroma.sqlite3 || true
 
-# Build RAG index during Docker build to avoid runtime timeout
-# FORCE_REINDEX=true ensures it doesn't accidentally skip building
-RUN PYTHONPATH=/app/backend FORCE_REINDEX=true python database/build_rag_index.py
+# We skip the heavy build_rag_index.py here because we are providing a pre-built DB.
+# This avoids the 46-minute embedding timeout on Hugging Face.
 
 # Copy the built frontend from Stage 1
 # This places the 'dist' folder where the backend expects it (../../frontend/dist)
