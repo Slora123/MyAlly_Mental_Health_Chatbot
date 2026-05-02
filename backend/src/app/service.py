@@ -32,7 +32,8 @@ root_env = Path(__file__).resolve().parents[3] / ".env"
 load_dotenv(dotenv_path=root_env)
 
 # ── Config ────────────────────────────────────────────────────────────────────
-HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+# Check for both HUGGINGFACE_TOKEN and HUGGINGFACE_API_TOKEN (HF Space default)
+HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN") or os.getenv("HUGGINGFACE_API_TOKEN")
 # Using Qwen2.5-7B-Instruct as requested. (Note: May have cold-start delays on free HF Inference API)
 MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 DB_PATH = str((
