@@ -11,6 +11,7 @@ import CounselorDashboard from './CounselorDashboard';
 import { detectThemeFromText } from './themes';
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { botDefault, botFemale, botMale } from './assets/avatars.js';
 import './App.css';
 
 export default function App() {
@@ -282,7 +283,7 @@ function ChatApp({ authToken, setAuthToken }) {
                 item={msg} 
                 theme={theme} 
                 animate={i === messages.length - 1} 
-                botImg={myAllyAvatar || (userProfile?.gender?.toLowerCase() === 'female' ? '/assets/bot_female.png' : (userProfile?.gender?.toLowerCase() === 'male' ? '/assets/bot_male.png' : '/assets/bot_default.png'))}
+                botImg={myAllyAvatar || (userProfile?.gender?.toLowerCase() === 'female' ? botFemale : (userProfile?.gender?.toLowerCase() === 'male' ? botMale : botDefault))}
                 userAvatar={userAvatar}
               />
             ))}
