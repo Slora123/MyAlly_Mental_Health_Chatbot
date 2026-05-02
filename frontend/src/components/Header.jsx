@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { THEMES } from '../themes';
 import styles from './Header.module.css';
-import { botDefault, botFemale, botMale } from '../assets/avatars.js';
+import { botDefault, botFemale, botMale } from '../assets/images.js';
 
 export default function Header({ theme, onSetTheme, userEmail, authToken, onLogout, userProfile, myAllyAvatar, setMyAllyAvatar, userAvatar, setUserAvatar }) {
   const [themeOpen, setThemeOpen] = useState(false);

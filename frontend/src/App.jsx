@@ -44,7 +44,6 @@ export default function App() {
         sessionStorage.setItem('myally_token', token);
         localStorage.setItem('myally_token', token);
         setAuthTokenState(token);
-
         // We DO NOT auto-navigate here anymore. 
         // We want the user to explicitly click "Sign In" or "Create Account" on the Login page.
         if (window.location.pathname !== '/') {
@@ -116,7 +115,7 @@ function ChatApp({ authToken, setAuthToken }) {
   const [isTyping, setIsTyping] = useState(false);
   const [theme, setTheme] = useState('calm');
   const [sessionId, setSessionId] = useState(null);
-  const [userEmail, setUserEmail] = useState('');
+  const [userEmail, setUserEmail] = useState(auth.currentUser?.email || '');
   const [userProfile, setUserProfile] = useState(null);
   
   // Avatar states
