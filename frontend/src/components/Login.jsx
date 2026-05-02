@@ -159,7 +159,7 @@ export default function Login({ setAuthToken }) {
           {/* Right Side: Image */}
           <div className="login-image-side" style={{
             flex: 1, 
-            background: 'url(/login-mockup.png)',
+            background: `url(${loginMockup})`,
             backgroundSize: 'cover', 
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'top center', 
