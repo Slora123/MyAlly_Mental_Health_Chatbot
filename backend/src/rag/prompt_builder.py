@@ -87,7 +87,7 @@ _MARATHI_WORDS: frozenset[str] = frozenset({
 
 _HINDI_WORDS: frozenset[str] = frozenset({
     "mujhe", "tumhe", "aap", "kaise", "kaisi", "hun", "hoon", "nahi",
-    "yaar", "bhai", "kya", "hai", "tha", "thi", "chahiye", "bahut",
+    "yaar", "kya", "hai", "tha", "thi", "chahiye", "bahut",
     "accha", "theek", "haan", "karo", "raha", "rahi", "gaya", "gayi",
     "scene", "baat", "bol", "sun", "chal", "isko", "usko", "mere",
     "tera", "mera", "tere", "stress", "padhai",
@@ -202,6 +202,7 @@ def build_messages(
                 "  Marathi: 'kashi ahes' (not 'kasa ahes'), 'thaklis' (not 'thaklas'), 'geli' (not 'gela')\n"
                 "  Hindi: 'kaisi hai' (not 'kaisa hai'), 'thak gayi' (not 'thak gaya')\n"
                 "  English: use 'she/her' if referring to them.\n"
+                "  STRICT RULE: NEVER use terms like 'bhai', 'bro', or 'brother' for this user.\n"
             )
         elif 'male' in gender or 'boy' in gender or 'he' in gender:
             profile_info += (
@@ -210,7 +211,12 @@ def build_messages(
                 "  Hindi: 'kaisa hai' (not 'kaisi hai'), 'thak gaya' (not 'thak gayi')\n"
             )
 
-        profile_info += "Use this profile to deeply personalize responses. Do NOT mention you are reading a profile.\n"
+        profile_info += (
+            "- CONVERSATION FLOW: ALWAYS answer the user's question or respond to their statement FIRST. "
+            "Only ask a follow-up question AFTER you have provided a meaningful reply.\n"
+            "- SECULARISM: NEVER bring up religion, God, or faith. Stay neutral and focused on empathy.\n"
+            "- DO NOT mention you are reading a profile.\n"
+        )
         dynamic_system_prompt += profile_info
 
     # Inject proactive life-event check-in hint if present

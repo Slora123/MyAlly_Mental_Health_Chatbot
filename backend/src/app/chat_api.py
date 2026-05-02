@@ -19,7 +19,7 @@ from typing import Optional
 
 from src.app.service import chat_logic
 from src.app.auth import get_current_user
-from . import vector_db
+from . import vector_db, firestore_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,21 +51,24 @@ async def get_profile(user: dict = Depends(get_current_user)):
 @app.post("/api/user/onboarding")
 async def save_onboarding(req: OnboardingRequest, user: dict = Depends(get_current_user)):
     profile_data = req.dict(exclude_unset=True)
-    updated_user = vector_db.save_user_profile(user["uid"], profile_data)
+    updated_user = firestore_db.save_user_profile(user["uid"], profile_data)
+    # Also save to vector_db for RAG context (local/ephemeral but useful for current session)
+    vector_db.save_user_profile(user["uid"], profile_data)
     return {"status": "success", "user": updated_user}
 
 # ── Chat API ──────────────────────────────────────────────────────────────
 
 @app.get("/api/chats")
 async def get_chat_sessions(user: dict = Depends(get_current_user)):
-    sessions = vector_db.get_user_sessions(user["uid"])
+    sessions = firestore_db.get_user_sessions(user["uid"])
     # Sort descending by updated_at
+    # Firestore timestamps need to be handled
     sessions.sort(key=lambda s: s["updated_at"], reverse=True)
     return {"sessions": sessions}
 
 @app.get("/api/chats/all")
 async def get_all_chats(user: dict = Depends(get_current_user)):
-    sessions = vector_db.get_user_sessions(user["uid"])
+    sessions = firestore_db.get_user_sessions(user["uid"])
     all_messages = []
     latest_session_id = None
     
@@ -75,7 +78,7 @@ async def get_all_chats(user: dict = Depends(get_current_user)):
         latest_session_id = sessions[0]["id"]
         
     for s in sessions:
-        msgs = vector_db.get_chat_history(s["id"])
+        msgs = firestore_db.get_chat_history(s["id"])
         all_messages.extend(msgs)
         
     # Sort all messages chronologically
@@ -88,11 +91,11 @@ async def get_all_chats(user: dict = Depends(get_current_user)):
 
 @app.get("/api/chats/{session_id}")
 async def get_chat_history(session_id: str, user: dict = Depends(get_current_user)):
-    session = vector_db.get_session(session_id, user["uid"])
+    session = firestore_db.get_session(session_id, user["uid"])
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    messages = vector_db.get_chat_history(session_id)
+    messages = firestore_db.get_chat_history(session_id)
     return {"session_id": session_id, "title": session["title"], "messages": messages}
 
 @app.post("/chat")
@@ -102,19 +105,23 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
         if not req.session_id:
             # Create new session
             title = "Chat: " + req.message[:20] + "..." if len(req.message) > 20 else "Chat: " + req.message
-            session = vector_db.create_chat_session(user["uid"], title)
+            session = firestore_db.create_chat_session(user["uid"], title)
             session_id = session["id"]
+            # Mirror in vector_db
+            vector_db.create_chat_session(user["uid"], title, session_id=session_id)
         else:
             session_id = req.session_id
-            session = vector_db.get_session(session_id, user["uid"])
+            session = firestore_db.get_session(session_id, user["uid"])
             if not session:
                 raise HTTPException(status_code=404, detail="Session not found")
 
-        # Save user message to DB
+        # Save user message to Firestore (PRIMARY) and ChromaDB (RAG)
+        firestore_db.add_chat_message(session_id, role="user", content=req.message)
         vector_db.add_chat_message(session_id, role="user", content=req.message)
 
         # Build history format expected by logic: list of [user_msg, bot_msg] pairs
-        full_history = vector_db.get_chat_history(session_id)
+        # We use Firestore for the chat history context to be robust
+        full_history = firestore_db.get_chat_history(session_id)
         
         history_pairs = []
         current_pair = [None, None]
@@ -135,7 +142,8 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
         # Call logic
         reply = chat_logic(req.message, history_pairs, user_profile=user, today=datetime.utcnow())
         
-        # Save bot message to DB
+        # Save bot message to both
+        firestore_db.add_chat_message(session_id, role="bot", content=reply)
         vector_db.add_chat_message(session_id, role="bot", content=reply)
         
         return {"reply": reply, "session_id": session_id}

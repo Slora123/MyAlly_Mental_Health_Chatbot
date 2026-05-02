@@ -105,9 +105,10 @@ def get_user_sessions(user_uid: str) -> list[dict]:
     sessions.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
     return sessions
 
-def create_chat_session(user_uid: str, title: str) -> dict:
+def create_chat_session(user_uid: str, title: str, session_id: str = None) -> dict:
     col = get_collection(SESSION_COLLECTION)
-    session_id = str(uuid.uuid4())
+    if not session_id:
+        session_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
     
     session_data = {

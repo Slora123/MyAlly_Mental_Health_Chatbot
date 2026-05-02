@@ -3,7 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, auth
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from . import vector_db
+from . import vector_db, firestore_db
 
 # Load Firebase credentials
 from dotenv import load_dotenv
@@ -93,13 +93,13 @@ def get_current_user(
         uid = decoded_token["uid"]
         print(f"✅ Auth verified for uid: {uid} ({decoded_token.get('email', 'no email')})")
 
-        user = vector_db.get_user_profile(uid)
+        user = firestore_db.get_user_profile(uid)
         if not user:
             # First-time login: create a profile for this user
             email = decoded_token.get("email", "")
             name = decoded_token.get("name", "Anonymous")
             print(f"👤 New user detected. Creating profile for: {email}")
-            user = vector_db.save_user_profile(uid, {"uid": uid, "email": email, "name": name})
+            user = firestore_db.save_user_profile(uid, {"uid": uid, "email": email, "name": name})
 
         return user
     except auth.InvalidIdTokenError as e:
