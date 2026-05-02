@@ -42,6 +42,7 @@ export default function App() {
         
         // Update tokens
         sessionStorage.setItem('myally_token', token);
+        sessionStorage.setItem('myally_explicit_login', 'true');
         localStorage.setItem('myally_token', token);
         setAuthTokenState(token);
         // We DO NOT auto-navigate here anymore. 
@@ -49,9 +50,9 @@ export default function App() {
         if (window.location.pathname !== '/') {
           // If they refresh while on /chat or /onboarding, let them stay there
         }
-      } else {
         console.log("👤 [App] No Firebase user. Clearing all tokens.");
         sessionStorage.removeItem('myally_token');
+        sessionStorage.removeItem('myally_explicit_login');
         localStorage.removeItem('myally_token');
         setAuthTokenState(null);
         if (window.location.pathname !== '/') {
@@ -89,7 +90,9 @@ export default function App() {
         authToken ? <Onboarding authToken={authToken} /> : <Navigate to="/" />
       } />
       <Route path="/chat" element={
-        authToken ? <ChatApp authToken={authToken} setAuthToken={setAuthToken} /> : <Navigate to="/" />
+        (authToken && sessionStorage.getItem('myally_explicit_login') === 'true') 
+          ? <ChatApp authToken={authToken} setAuthToken={setAuthToken} /> 
+          : <Navigate to="/" />
       } />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
@@ -103,6 +106,7 @@ async function handleLogout(setAuthToken) {
     console.warn('Sign out error:', e);
   }
   sessionStorage.removeItem('myally_token');
+  sessionStorage.removeItem('myally_explicit_login');
   localStorage.removeItem('myally_token');
   setAuthToken(null);
   window.location.href = '/';

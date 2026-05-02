@@ -22,6 +22,7 @@ export default function Login({ setAuthToken }) {
         console.log('✅ [Login] Popup login successful for:', result.user.email);
 
         sessionStorage.setItem('myally_token', token);
+        sessionStorage.setItem('myally_explicit_login', 'true');
         localStorage.setItem('myally_token', token);
         
         // CRITICAL: Tell App.jsx we are logged in so the gatekeeper lets us through
