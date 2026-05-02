@@ -15,6 +15,7 @@ import { botDefault, botFemale, botMale } from './assets/avatars.js';
 import './App.css';
 
 export default function App() {
+  const navigate = useNavigate();
   // Use sessionStorage so each browser tab has its own independent auth state.
   // Closing a tab or opening a new tab always starts fresh at the login page.
   const [authToken, setAuthTokenState] = useState(sessionStorage.getItem('myally_token'));
