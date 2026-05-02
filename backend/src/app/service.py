@@ -165,11 +165,6 @@ def chat_logic(user_message: str, history: list, user_profile=None, today=None) 
         if detected:
             app_vector_db.update_life_events(uid, detected)
 
-    # ── Step 1.6: Store this message as a long-term memory ────────────────────
-    if uid and memory_extractor.should_store_memory(user_message):
-        app_vector_db.add_user_memory(uid, user_message)
-        print(f"🧠 Memory stored for {uid}: {user_message[:60]}...")
-
     # ── Step 1.7: Build proactive context from stored life events ─────────────
     proactive_ctx = None
     if uid:
@@ -218,8 +213,13 @@ def chat_logic(user_message: str, history: list, user_profile=None, today=None) 
         ai_reply: str = " ".join(
             response.choices[0].message.content.split()
         )
-    except Exception as exc:
-        return f"Model error: {exc}"
+    except Exception as e:
+        return f"Model error: {e}"
+
+    # ── Step 4.5: Store this message as a long-term memory AFTER retrieval ──
+    if uid and memory_extractor.should_store_memory(user_message):
+        app_vector_db.add_user_memory(uid, user_message)
+        print(f"🧠 Memory stored for {uid}: {user_message[:60]}...")
 
     # ── Step 5: Post-generation safety check ─────────────────────────────────
     reply_safe, safety_issues = safety.check_post_generation(ai_reply)

@@ -34,10 +34,18 @@ def should_store_memory(message: str) -> bool:
     Return True if this user message is worth storing as a long-term memory.
     Filters out greetings, one-word replies, and trivial messages.
     """
-    if len(message.strip().split()) < 6:
+    cleaned = message.strip()
+    if len(cleaned.split()) < 8: # Increased from 6
         return False
-    msg_lower = message.lower()
-    return any(signal in msg_lower for signal in _PERSONAL_SIGNALS)
+    
+    msg_lower = cleaned.lower()
+    # Check for personal signals
+    has_signal = any(signal in msg_lower for signal in _PERSONAL_SIGNALS)
+    
+    # Avoid storing messages that look like simple repetition or questions
+    is_question = cleaned.endswith('?')
+    
+    return has_signal and not is_question
 
 # Month name mapping (longer names first to avoid partial matches)
 MONTHS: dict[str, int] = {

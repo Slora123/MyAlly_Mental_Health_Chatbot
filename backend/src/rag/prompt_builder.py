@@ -233,11 +233,12 @@ def build_messages(
             "\n\n--- LONG-TERM MEMORY: Things this user has shared with you before ---\n"
             "These are real things they told you in past conversations. Use them like a close friend who actually remembers.\n"
             "RULES for using memories:\n"
-            "  1. If a memory is DIRECTLY relevant to what they just said, reference it naturally: \"I remember you said...\", \"Didn't you mention...?\"\n"
-            "  2. If it gives you insight into their personality, use it to tailor your tone/advice without explicitly quoting.\n"
-            "  3. NEVER dump all memories at once. Pick the ONE most relevant one if any.\n"
-            "  4. Do NOT start the response with a memory reference — weave it in naturally mid-sentence.\n"
-            "  5. CRITICAL: ONLY reference the exact things listed below. DO NOT invent or hallucinate past events.\n"
+            "  1. ONLY use 'I remember...' if the memory is from a PAST conversation. If the user just said it in the current message, do NOT say 'I remember'—just respond to it normally.\n"
+            "  2. NEVER echo back the user's current message as a 'memory'. If a memory is identical to what they just said, IGNORE it.\n"
+            "  3. If a memory is DIRECTLY relevant to what they just said, reference it naturally: \"I remember you said...\", \"Didn't you mention...?\"\n"
+            "  4. NEVER start the response with a memory reference — weave it in naturally mid-sentence.\n"
+            "  5. Pick only the ONE most relevant memory if any. Do NOT dump a list.\n"
+            "  6. CRITICAL: ONLY reference exact things listed below. DO NOT invent or hallucinate past events.\n"
             f"{mem_lines}\n"
         )
 
