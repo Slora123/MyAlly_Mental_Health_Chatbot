@@ -20,18 +20,22 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 
-# --- Database & Heavy Files (Kicked out for size) ---
+# --- Database & Heavy Files ---
 *.csv
 *.jsonl
 *.db
-chroma_db/
-database/chroma_db/
 rag_reference_logs.jsonl
 
-# Ignore the heavy dataset folders entirely
+# Ignore the heavy raw dataset folders
 database/empatheticdialogues*/
 database/mhqa-main/
 
-*.png
-*.svg
-*.ico
+# UNIGNORE built vector database for deployment
+!database/chroma_db/
+
+# UNIGNORE essential UI assets
+!*.png
+!*.svg
+!*.ico
+!*.jpg
+!*.jpeg

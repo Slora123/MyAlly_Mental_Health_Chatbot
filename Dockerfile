@@ -22,6 +22,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend code
 COPY backend/ ./backend/
 
+# Copy the built vector database
+COPY database/ ./database/
+
 # Copy the built frontend from Stage 1
 # This places the 'dist' folder where the backend expects it (../../frontend/dist)
 RUN mkdir -p frontend/dist
