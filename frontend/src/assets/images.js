@@ -1,1 +1,5 @@
-import imageData from './images.json';\nexport const loginMockup = imageData.loginMockup;\nexport const botDefault = imageData.botDefault;\nexport const botMale = imageData.botMale;\nexport const botFemale = imageData.botFemale;\n
+import imageData from './images.json';
+export const loginMockup = imageData.loginMockup;
+export const botDefault = imageData.botDefault;
+export const botMale = imageData.botMale;
+export const botFemale = imageData.botFemale;
