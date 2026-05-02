@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../firebase';
-import loginMockup from '../assets/login-mockup.png';
+import { loginMockup } from '../assets/images.js';
 
 export default function Login({ setAuthToken }) {
   const navigate = useNavigate();
@@ -83,7 +83,8 @@ export default function Login({ setAuthToken }) {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        fontFamily: "'Outfit', sans-serif"
+        fontFamily: "'Outfit', sans-serif",
+        overflow: 'hidden'
       }}>
         <div className="role-selection-card" style={{
           display: 'flex', width: '92%', maxWidth: '1200px', height: '80vh',
@@ -159,7 +160,7 @@ export default function Login({ setAuthToken }) {
           {/* Right Side: Image */}
           <div className="login-image-side" style={{
             flex: 1, 
-            background: `url(${loginMockup})`,
+            background: 'url(/login-mockup.png)',
             backgroundSize: 'cover', 
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'top center', 
@@ -175,8 +176,7 @@ export default function Login({ setAuthToken }) {
           @media (max-width: 900px) {
             .login-wrapper {
               overflow-y: auto !important;
-              padding: 40px 20px !important; /* Added side space */
-              display: block !important;
+              padding: 20px 15px !important; /* Added side space */
             }
             .role-selection-card {
               flex-direction: column !important;
@@ -305,16 +305,6 @@ export default function Login({ setAuthToken }) {
         .back-btn:hover { background: #f1f5f9; color: #1e293b; transform: scale(1.1); }
         .auth-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(253, 29, 29, 0.4); }
         .create-btn:hover { background: rgba(0,0,0,0.06); transform: translateY(-2px); }
-        @media (max-width: 900px) {
-          .login-wrapper {
-            padding: 40px 20px !important;
-          }
-          .auth-card {
-            margin: 0 15px !important;
-            padding: 40px 24px !important;
-            width: auto !important;
-          }
-        }
       `}</style>
     </div>
   );
