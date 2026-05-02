@@ -49,11 +49,11 @@ export default function Login({ setAuthToken }) {
         
         if (profileRes && profileRes.ok) {
           const profile = await profileRes.json();
-          const hasCompletedOnboarding = !!profile.nickname;
-
-          if (hasCompletedOnboarding) {
+          if (profile && profile.nickname) {
+            console.log("✅ [Login] Profile found. Navigating to chat.");
             navigate('/chat');
           } else {
+            console.log("⚠️ [Login] No nickname found. Navigating to onboarding.");
             navigate('/onboarding');
           }
         } else {

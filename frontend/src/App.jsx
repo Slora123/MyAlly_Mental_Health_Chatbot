@@ -38,63 +38,43 @@ export default function App() {
       if (user) {
         console.log("👤 [App] Auth state changed: User is logged in", user.email);
         const token = await user.getIdToken();
+        
+        // Update tokens
+        sessionStorage.setItem('myally_token', token);
+        localStorage.setItem('myally_token', token);
+        setAuthTokenState(token);
 
-        // Check if user came back from a deliberate Google login redirect
-        const savedRole = localStorage.getItem('pending_role');
-        const savedMode = localStorage.getItem('pending_login_mode');
-
-        if (savedRole || savedMode) {
-          // Fresh deliberate login — store token in this tab's sessionStorage and navigate
-          console.log("🚀 [App] Fresh login detected. Navigating...", { savedRole, savedMode });
-          sessionStorage.setItem('myally_token', token);
-          localStorage.setItem('myally_token', token);
-          setAuthTokenState(token);
-          localStorage.removeItem('pending_role');
-          localStorage.removeItem('pending_login_mode');
-
-          if (savedRole === 'admin') {
-            window.location.href = '/admin';
-          } else {
-            // Check if user has already completed onboarding
-            try {
-              const res = await fetch('/api/user/profile', {
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
-              if (res.ok) {
-                const profile = await res.json();
-                if (profile && profile.nickname) {
-                  window.location.href = '/chat';
-                  return;
-                }
+        // Check if we need to navigate (only if we are on the login page)
+        if (window.location.pathname === '/') {
+          try {
+            const res = await fetch('/api/user/profile', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const profile = await res.json();
+              if (profile && profile.nickname) {
+                console.log("✅ [App] Profile found. Navigating to chat.");
+                navigate('/chat');
+              } else {
+                console.log("⚠️ [App] No nickname found. Navigating to onboarding.");
+                navigate('/onboarding');
               }
-            } catch (err) {
-              console.warn("Profile check failed during login redirect:", err);
-            }
-            
-            // Fallback to saved mode
-            if (savedMode === 'create') {
-              window.location.href = '/onboarding';
             } else {
-              window.location.href = '/chat';
+              navigate('/chat');
             }
+          } catch (err) {
+            console.warn("Profile check failed during silent refresh:", err);
+            navigate('/chat');
           }
-          return;
-        }
-
-        // No pending login — Firebase silently recognized an old session.
-        // DO NOT auto-navigate. The user must go through the login page.
-        // But if this tab already has a session token, refresh it silently.
-        if (sessionStorage.getItem('myally_token')) {
-          console.log("🔄 [App] Refreshing token for existing tab session.");
-          setAuthToken(token);
-        } else {
-          console.log("🔒 [App] Old Firebase session found but no tab session. Staying on login page.");
         }
       } else {
         console.log("👤 [App] No Firebase user. Clearing all tokens.");
         sessionStorage.removeItem('myally_token');
         localStorage.removeItem('myally_token');
         setAuthTokenState(null);
+        if (window.location.pathname !== '/') {
+          navigate('/');
+        }
       }
       setLoading(false);
     });
