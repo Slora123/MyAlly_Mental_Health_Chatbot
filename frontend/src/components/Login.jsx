@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithRedirect } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../firebase';
 import { loginMockup } from '../assets/images.js';
@@ -15,61 +15,17 @@ export default function Login({ setAuthToken }) {
     setIsLoggingIn(true);
 
     try {
-      // Use popup — works reliably on the direct .hf.space link
-      const result = await signInWithPopup(auth, googleProvider);
-
-      if (result?.user) {
-        const token = await result.user.getIdToken();
-        console.log('✅ [Login] Popup login successful for:', result.user.email);
-
-        sessionStorage.setItem('myally_token', token);
-        localStorage.setItem('myally_token', token);
-        
-        // CRITICAL: Tell App.jsx we are logged in so the gatekeeper lets us through
-        setAuthToken(token);
-
-        if (role === 'admin') {
-          navigate('/admin');
-          return;
-        }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); 
-
-        let profileRes = null;
-        try {
-          profileRes = await fetch('/api/user/profile', {
-            headers: { 'Authorization': `Bearer ${token}` },
-            signal: controller.signal
-          });
-        } catch (e) {
-          console.warn("⚠️ Profile fetch timed out or failed. Using fallback navigation.");
-        } finally {
-          clearTimeout(timeoutId);
-        }
-        
-        if (profileRes && profileRes.ok) {
-          const profile = await profileRes.json();
-          const hasCompletedOnboarding = !!profile.nickname;
-
-          if (hasCompletedOnboarding) {
-            navigate('/chat');
-          } else {
-            navigate('/onboarding');
-          }
-        } else {
-          navigate(mode === 'create' ? '/onboarding' : '/chat');
-        }
-      }
+      // Store state before redirect so App.jsx knows what to do after return
+      localStorage.setItem('pending_role', role);
+      localStorage.setItem('pending_login_mode', mode);
+      
+      // Use redirect instead of popup to bypass strict iframe popup blockers on HF Spaces
+      await signInWithRedirect(auth, googleProvider);
     } catch (error) {
       console.error('❌ Login failed:', error);
       setIsLoggingIn(false);
       setStatusMsg('');
-      if (error.code === 'auth/popup-blocked') {
-        alert('Popup was blocked by your browser. Please allow popups and try again.');
-      } else if (error.code !== 'auth/popup-closed-by-user') {
-        alert('Login failed: ' + error.message);
-      }
+      alert('Login redirect failed: ' + error.message);
     }
   };
 
