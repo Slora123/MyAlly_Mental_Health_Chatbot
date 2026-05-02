@@ -19,8 +19,15 @@ if not firebase_admin._apps:
     if firebase_cred_json:
         # Use JSON string directly from env variable (Good for Render)
         import json
+        import base64
         try:
-            cred_dict = json.loads(firebase_cred_json)
+            # Check if it's base64 encoded; if not, load normally
+            try:
+                decoded_json = base64.b64decode(firebase_cred_json).decode('utf-8')
+                cred_dict = json.loads(decoded_json)
+            except Exception:
+                cred_dict = json.loads(firebase_cred_json)
+                
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred)
             print("🔐 Initialized Firebase using FIREBASE_CREDENTIALS_JSON")
@@ -82,7 +89,7 @@ def get_current_user(
 
     token = credentials.credentials
     try:
-        decoded_token = auth.verify_id_token(token)
+        decoded_token = auth.verify_id_token(token, clock_skew_seconds=60)
         uid = decoded_token["uid"]
         print(f"✅ Auth verified for uid: {uid} ({decoded_token.get('email', 'no email')})")
 
