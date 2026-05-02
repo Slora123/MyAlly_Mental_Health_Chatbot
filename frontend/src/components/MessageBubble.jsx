@@ -1,0 +1,45 @@
+import { THEMES } from '../themes';
+import styles from './MessageBubble.module.css';
+
+function timeStr(iso) {
+  // Backend stores UTC timestamps without 'Z'. Append it so the browser
+  // correctly treats the time as UTC and converts to local time (IST).
+  const normalized = iso && !iso.endsWith('Z') ? iso + 'Z' : iso;
+  return new Date(normalized).toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+export default function MessageBubble({ item, theme, botImg, userAvatar, animate }) {
+  const isUser = item.role === 'user';
+  const t = THEMES[theme];
+  const avatar = isUser ? '👤' : '👧';
+
+  return (
+    <div
+      className={`${styles.row} ${isUser ? styles.user : styles.bot}`}
+      style={animate ? { animation: 'msg-in 0.38s cubic-bezier(0.175,0.885,0.32,1.2) both' } : { animation: 'none' }}
+    >
+      <div className={styles.avatarWrap} aria-hidden="true">
+        <div className={`${styles.avatar} ${isUser ? styles.avatarUser : styles.avatarBot}`} style={{ overflow: 'hidden' }}>
+          {isUser ? (
+            userAvatar ? <img src={userAvatar} className={styles.avatarImg} /> : '👤'
+          ) : (
+            botImg ? <img src={botImg} className={styles.avatarImg} /> : '👧'
+          )}
+        </div>
+      </div>
+
+      <div className={`${styles.content} ${isUser ? styles.contentUser : styles.contentBot}`}>
+        <div className={`${styles.bubble} ${isUser ? styles.bubbleUser : styles.bubbleBot}`}>
+          <div className={styles.text}>{item.text}</div>
+          <time className={`${styles.time} ${isUser ? styles.timeUser : styles.timeBot}`}>
+            {timeStr(item.time)}
+          </time>
+        </div>
+      </div>
+    </div>
+  );
+}

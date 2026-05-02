@@ -1,0 +1,44 @@
+# --- Python & System ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+build/
+dist/
+*.egg-info/
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
+
+# --- Secrets & Keys (CRITICAL) ---
+.env
+firebase-key.json
+backend/firebase-key.json
+
+# --- Frontend ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# --- Database & Heavy Files ---
+*.csv
+*.jsonl
+*.db
+rag_reference_logs.jsonl
+
+# Ignore the heavy raw dataset folders
+database/empatheticdialogues*/
+database/mhqa-main/
+
+# UNIGNORE processed dataset PARTS (under 10MB each) for deployment
+# We DO NOT push the large .sqlite3 or .jsonl files to avoid HF size limits.
+# The server will reconstruct knowledge_documents.jsonl from these parts.
+!database/data/processed/knowledge_part_*
+!database/data/processed/empathy_documents.jsonl
+
+# UNIGNORE essential UI assets
+!*.png
+!*.svg
+!*.ico
+!*.jpg
+!*.jpeg
