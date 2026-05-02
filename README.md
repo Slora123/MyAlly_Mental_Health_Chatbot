@@ -15,24 +15,22 @@ pinned: false
 
 ## 🌟 Key Features
 
-### 1. 🤝 Empathetic Chat Interface
-- **Personalized Tone:** Acts like a supportive friend with a professional, empathetic tone.
-- **Multilingual Support:** Understands Hinglish/Minglish and simple English (Roman script).
-- **Mood-Based Themes:** Glassmorphism UI with themes that change automatically based on user message keywords.
+### 🤝 Empathetic Chat Interface
+- **Acts like a supportive friend** with a professional, empathetic tone
+- **Understands Hinglish/Minglish** and simple English
+- **Glassmorphism UI** with mood-based themes that change automatically based on user message keywords
 
-### 2. 🧠 Context Awareness & Memory
-- **Persistent History:** Remembers past conversations and maintains chat history for personalized, human-like interactions.
-- **Cross-Deployment Persistence:** Uses Google Firestore to ensure your profile and chats stay saved forever.
+### 🧠 Context Awareness & Memory
+- **Remembers past conversations** and maintains chat history for personalized, human-like interactions
 
-### 3. 📚 RAG-Powered Intelligence
-- **Retrieval-Augmented Generation (RAG):** Uses ChromaDB with verified resources to provide accurate and reliable guidance.
-- **Verified Guidance:** Ensures all advice is grounded in high-quality mental health documentation.
+### 📚 RAG-Based Responses
+- **Uses ChromaDB** with verified resources to provide accurate and reliable guidance
 
-### 4. 🛡️ Real-time Crisis Escalation
-- **Risk Detection:** Detects high-risk intent and sends instant alerts to counselors via the web portal.
+### 🛡️ Real-time Crisis Escalation
+- **Detects high-risk intent** and sends instant alerts to counselors via the web portal
 
-### 5. 🔒 Secure Authentication
-- **Verified Access:** Firebase + JWT-based login ensuring user privacy and secure access.
+### 🔒 Secure Authentication
+- **Firebase + JWT-based login** ensuring user privacy and secure access
 
 ---
 
