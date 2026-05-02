@@ -47,6 +47,18 @@ export default function App() {
 
         // Check if we need to navigate (only if we are on the login page)
         if (window.location.pathname === '/') {
+          // FIREBASE METADATA CHECK: Bypass backend check for returning users
+          const createdTime = new Date(user.metadata.creationTime).getTime();
+          const lastLoginTime = new Date(user.metadata.lastSignInTime).getTime();
+          const isBrandNewAccount = Math.abs(lastLoginTime - createdTime) < 5000; // Under 5 seconds difference
+          
+          if (!isBrandNewAccount) {
+            console.log("✅ [App] Returning user detected via Firebase. Skipping onboarding.");
+            navigate('/chat');
+            setLoading(false);
+            return;
+          }
+
           try {
             const res = await fetch('/api/user/profile', {
               headers: { 'Authorization': `Bearer ${token}` }

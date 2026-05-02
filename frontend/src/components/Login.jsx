@@ -32,6 +32,17 @@ export default function Login({ setAuthToken }) {
           return;
         }
 
+        // FIREBASE METADATA CHECK: Bypass backend check for returning users
+        const createdTime = new Date(result.user.metadata.creationTime).getTime();
+        const lastLoginTime = new Date(result.user.metadata.lastSignInTime).getTime();
+        const isBrandNewAccount = Math.abs(lastLoginTime - createdTime) < 5000; // Under 5 seconds difference
+
+        if (!isBrandNewAccount) {
+          console.log("✅ [Login] Returning user detected via Firebase. Navigating to chat.");
+          navigate('/chat');
+          return;
+        }
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000); 
 
