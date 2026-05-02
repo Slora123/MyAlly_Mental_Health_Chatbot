@@ -23,8 +23,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 COPY database/ ./database/
 RUN mkdir -p database/data/processed database/chroma_db
+
+# Stitch the knowledge dataset parts back together BEFORE building the index
+RUN cat database/data/processed/knowledge_part_* > database/data/processed/knowledge_documents.jsonl || true
+
 # Build RAG index during Docker build to avoid runtime timeout
-RUN PYTHONPATH=/app/backend python database/build_rag_index.py
+# FORCE_REINDEX=true ensures it doesn't accidentally skip building
+RUN PYTHONPATH=/app/backend FORCE_REINDEX=true python database/build_rag_index.py
 
 # Copy the built frontend from Stage 1
 # This places the 'dist' folder where the backend expects it (../../frontend/dist)

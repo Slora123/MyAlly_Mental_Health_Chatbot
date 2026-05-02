@@ -11,7 +11,7 @@ import CounselorDashboard from './CounselorDashboard';
 import { detectThemeFromText } from './themes';
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { botDefault, botFemale, botMale } from './assets/avatars.js';
+import { botDefault, botFemale, botMale } from './assets/images.js';
 import './App.css';
 
 export default function App() {
