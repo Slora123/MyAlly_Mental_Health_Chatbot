@@ -197,6 +197,9 @@ function ChatApp({ authToken, setAuthToken }) {
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
     setIsTyping(true);
+    // Reset height if it's a textarea
+    const input = document.getElementById('chat-text-input');
+    if (input) input.style.height = 'inherit';
 
     const detected = detectThemeFromText(text);
     if (detected) setTheme(detected);
@@ -297,14 +300,24 @@ function ChatApp({ authToken, setAuthToken }) {
           <footer className="input-area">
             <div className="input-pill">
               <span className="input-icon">😊</span>
-              <input
-                type="text"
+              <textarea
                 id="chat-text-input"
                 className="chat-input"
                 placeholder="Type how you feel..."
+                rows="1"
                 value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                onChange={(e) => {
+                  setInputText(e.target.value);
+                  e.target.style.height = 'inherit';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                    e.target.style.height = 'inherit';
+                  }
+                }}
               />
               <button id="send-message-btn" className="send-btn" onClick={() => handleSendMessage()} disabled={!inputText.trim() || isTyping}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

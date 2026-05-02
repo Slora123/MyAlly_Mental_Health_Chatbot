@@ -111,10 +111,10 @@ body.theme-night .app-wrapper {
 
 .input-pill {
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* Align to bottom as it grows */
   gap: 15px;
   padding: 8px 8px 8px 25px;
-  border-radius: 50px;
+  border-radius: 28px; /* Slightly more square for multiline */
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
@@ -131,7 +131,15 @@ body.theme-night .app-wrapper {
   font-weight: 500;
   font-family: 'Inter', sans-serif;
   outline: none;
-  padding: 10px 0;
+  padding: 12px 0;
+  resize: none;
+  min-height: 24px;
+  max-height: 150px;
+  line-height: 1.5;
+}
+
+.input-icon {
+  padding-bottom: 12px; /* Center with the first line */
 }
 
 .chat-input::placeholder {
