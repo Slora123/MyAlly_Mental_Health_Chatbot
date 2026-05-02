@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { signInWithRedirect } from 'firebase/auth';
+import { signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../firebase';
 import { loginMockup } from '../assets/images.js';
@@ -15,17 +15,60 @@ export default function Login({ setAuthToken }) {
     setIsLoggingIn(true);
 
     try {
-      // Store state before redirect so App.jsx knows what to do after return
-      localStorage.setItem('pending_role', role);
-      localStorage.setItem('pending_login_mode', mode);
-      
-      // Use redirect instead of popup to bypass strict iframe popup blockers on HF Spaces
-      await signInWithRedirect(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+
+      if (result?.user) {
+        const token = await result.user.getIdToken();
+        console.log('✅ [Login] Popup login successful for:', result.user.email);
+
+        sessionStorage.setItem('myally_token', token);
+        localStorage.setItem('myally_token', token);
+        
+        // CRITICAL: Tell App.jsx we are logged in so the gatekeeper lets us through
+        setAuthToken(token);
+
+        if (role === 'admin') {
+          navigate('/admin');
+          return;
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); 
+
+        let profileRes = null;
+        try {
+          profileRes = await fetch('/api/user/profile', {
+            headers: { 'Authorization': `Bearer ${token}` },
+            signal: controller.signal
+          });
+        } catch (e) {
+          console.warn("⚠️ Profile fetch timed out or failed. Using fallback navigation.");
+        } finally {
+          clearTimeout(timeoutId);
+        }
+        
+        if (profileRes && profileRes.ok) {
+          const profile = await profileRes.json();
+          const hasCompletedOnboarding = !!profile.nickname;
+
+          if (hasCompletedOnboarding) {
+            navigate('/chat');
+          } else {
+            navigate('/onboarding');
+          }
+        } else {
+          navigate(mode === 'create' ? '/onboarding' : '/chat');
+        }
+      }
     } catch (error) {
       console.error('❌ Login failed:', error);
       setIsLoggingIn(false);
       setStatusMsg('');
-      alert('Login redirect failed: ' + error.message);
+      if (error.code === 'auth/popup-blocked') {
+        alert('Popup was blocked by your browser! Please click "Open App in Full Screen" instead.');
+      } else if (error.code !== 'auth/popup-closed-by-user') {
+        alert('Login failed: ' + error.message);
+      }
     }
   };
 
@@ -181,6 +224,8 @@ export default function Login({ setAuthToken }) {
     );
   }
 
+  const isEmbedded = window !== window.top;
+
   // ── Auth Action Screen ─────────────────────────────────────────────────────
   return (
     <div className="login-wrapper" style={{
@@ -217,23 +262,39 @@ export default function Login({ setAuthToken }) {
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <button
-            className="auth-btn"
-            onClick={() => handleGoogleLogin('signin')}
-            disabled={isLoggingIn}
-            style={{
-              background: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
-              color: 'white', fontWeight: '800', padding: '18px', border: 'none',
-              borderRadius: '16px', cursor: isLoggingIn ? 'not-allowed' : 'pointer',
-              fontSize: '1.1rem', transition: '0.3s',
-              boxShadow: '0 10px 20px rgba(253, 29, 29, 0.2)',
-              opacity: isLoggingIn ? 0.7 : 1
-            }}
-          >
-            {isLoggingIn ? 'Logging in...' : (role === 'student' ? 'Sign In with Google' : 'Continue with Google')}
-          </button>
+          {isEmbedded ? (
+            <button
+              className="auth-btn"
+              onClick={() => window.open(window.location.href, '_blank')}
+              style={{
+                background: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
+                color: 'white', fontWeight: '800', padding: '18px', border: 'none',
+                borderRadius: '16px', cursor: 'pointer',
+                fontSize: '1.1rem', transition: '0.3s',
+                boxShadow: '0 10px 20px rgba(253, 29, 29, 0.2)'
+              }}
+            >
+              Open App in Full Screen
+            </button>
+          ) : (
+            <button
+              className="auth-btn"
+              onClick={() => handleGoogleLogin('signin')}
+              disabled={isLoggingIn}
+              style={{
+                background: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
+                color: 'white', fontWeight: '800', padding: '18px', border: 'none',
+                borderRadius: '16px', cursor: isLoggingIn ? 'not-allowed' : 'pointer',
+                fontSize: '1.1rem', transition: '0.3s',
+                boxShadow: '0 10px 20px rgba(253, 29, 29, 0.2)',
+                opacity: isLoggingIn ? 0.7 : 1
+              }}
+            >
+              {isLoggingIn ? 'Logging in...' : (role === 'student' ? 'Sign In with Google' : 'Continue with Google')}
+            </button>
+          )}
 
-          {role === 'student' && (
+          {role === 'student' && !isEmbedded && (
             <button
               className="create-btn"
               onClick={() => handleGoogleLogin('create')}
@@ -248,6 +309,12 @@ export default function Login({ setAuthToken }) {
             >
               {isLoggingIn ? 'Please wait...' : 'Create Account'}
             </button>
+          )}
+
+          {isEmbedded && (
+            <p style={{ color: '#ef4444', fontSize: '0.9rem', marginTop: '10px', fontWeight: '600' }}>
+              Google Login is blocked inside iframes. Please open in full screen first!
+            </p>
           )}
 
           <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '15px' }}>
