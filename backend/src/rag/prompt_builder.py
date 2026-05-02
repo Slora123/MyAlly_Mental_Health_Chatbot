@@ -230,6 +230,7 @@ def build_messages(
             "  2. If it gives you insight into their personality, use it to tailor your tone/advice without explicitly quoting.\n"
             "  3. NEVER dump all memories at once. Pick the ONE most relevant one if any.\n"
             "  4. Do NOT start the response with a memory reference — weave it in naturally mid-sentence.\n"
+            "  5. CRITICAL: ONLY reference the exact things listed below. DO NOT invent or hallucinate past events.\n"
             f"{mem_lines}\n"
         )
 
@@ -248,9 +249,15 @@ def build_messages(
 
     context_block = ""
     if empathy_context or knowledge_context:
-        context_block = "\nBackground context (for tone and grounding):\n"
-        if empathy_context: context_block += f"[Empathy examples]: {empathy_context}\n"
-        if knowledge_context: context_block += f"[Related info]: {knowledge_context}\n"
+        context_block = "\n--- ADDITIONAL SYSTEM CONTEXT ---\n"
+        if empathy_context: 
+            context_block += (
+                "CRITICAL INSTRUCTION: The following [Empathy examples] show the TONE you should use. "
+                "They are NOT past conversations with this user. DO NOT claim the user said these things. DO NOT bring up events from these examples.\n"
+                f"[Empathy examples]:\n{empathy_context}\n"
+            )
+        if knowledge_context: 
+            context_block += f"[Related info]: {knowledge_context}\n"
 
     user_prompt = f"""\
 Here's the conversation so far:
