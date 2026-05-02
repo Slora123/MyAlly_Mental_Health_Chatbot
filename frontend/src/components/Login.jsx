@@ -35,40 +35,31 @@ export default function Login({ setAuthToken }) {
         // FIREBASE METADATA CHECK: Bypass backend check for returning users
         const createdTime = new Date(result.user.metadata.creationTime).getTime();
         const lastLoginTime = new Date(result.user.metadata.lastSignInTime).getTime();
-        const isBrandNewAccount = Math.abs(lastLoginTime - createdTime) < 5000; // Under 5 seconds difference
+        // If they just created the account, these times will be nearly identical
+        const isBrandNewAccount = Math.abs(lastLoginTime - createdTime) < 5000; 
 
-        if (!isBrandNewAccount) {
-          console.log("✅ [Login] Returning user detected via Firebase. Navigating to chat.");
-          navigate('/chat');
-          return;
-        }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); 
-
-        let profileRes = null;
-        try {
-          profileRes = await fetch('/api/user/profile', {
-            headers: { 'Authorization': `Bearer ${token}` },
-            signal: controller.signal
-          });
-        } catch (e) {
-          console.warn("⚠️ Profile fetch timed out or failed. Using fallback navigation.");
-        } finally {
-          clearTimeout(timeoutId);
-        }
-        
-        if (profileRes && profileRes.ok) {
-          const profile = await profileRes.json();
-          if (profile && profile.nickname) {
-            console.log("✅ [Login] Profile found. Navigating to chat.");
-            navigate('/chat');
+        if (mode === 'create') {
+          if (!isBrandNewAccount) {
+            // Returning user trying to create an account
+            alert("You have already created an account! Please use 'Sign In with Google' instead.");
+            setIsLoggingIn(false);
+            return;
           } else {
-            console.log("⚠️ [Login] No nickname found. Navigating to onboarding.");
+            // Brand new user creating an account
             navigate('/onboarding');
+            return;
           }
-        } else {
-          navigate(mode === 'create' ? '/onboarding' : '/chat');
+        } else if (mode === 'signin') {
+          if (!isBrandNewAccount) {
+            // Returning user signing in normally
+            navigate('/chat');
+            return;
+          } else {
+            // Brand new user who clicked "Sign in" instead of create
+            // We should still send them to onboarding since they are new
+            navigate('/onboarding');
+            return;
+          }
         }
       }
     } catch (error) {

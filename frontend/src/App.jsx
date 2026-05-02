@@ -45,40 +45,10 @@ export default function App() {
         localStorage.setItem('myally_token', token);
         setAuthTokenState(token);
 
-        // Check if we need to navigate (only if we are on the login page)
-        if (window.location.pathname === '/') {
-          // FIREBASE METADATA CHECK: Bypass backend check for returning users
-          const createdTime = new Date(user.metadata.creationTime).getTime();
-          const lastLoginTime = new Date(user.metadata.lastSignInTime).getTime();
-          const isBrandNewAccount = Math.abs(lastLoginTime - createdTime) < 5000; // Under 5 seconds difference
-          
-          if (!isBrandNewAccount) {
-            console.log("✅ [App] Returning user detected via Firebase. Skipping onboarding.");
-            navigate('/chat');
-            setLoading(false);
-            return;
-          }
-
-          try {
-            const res = await fetch('/api/user/profile', {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-              const profile = await res.json();
-              if (profile && profile.nickname) {
-                console.log("✅ [App] Profile found. Navigating to chat.");
-                navigate('/chat');
-              } else {
-                console.log("⚠️ [App] No nickname found. Navigating to onboarding.");
-                navigate('/onboarding');
-              }
-            } else {
-              navigate('/chat');
-            }
-          } catch (err) {
-            console.warn("Profile check failed during silent refresh:", err);
-            navigate('/chat');
-          }
+        // We DO NOT auto-navigate here anymore. 
+        // We want the user to explicitly click "Sign In" or "Create Account" on the Login page.
+        if (window.location.pathname !== '/') {
+          // If they refresh while on /chat or /onboarding, let them stay there
         }
       } else {
         console.log("👤 [App] No Firebase user. Clearing all tokens.");
