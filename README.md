@@ -9,7 +9,7 @@ pinned: false
 
 # MyAlly: A Premium AI Mental-Health Companion 🛡️✨
 
-**MyAlly** is a state-of-the-art, empathy-aware mental health support chatbot designed specifically for students. It combines **Retrieval-Augmented Generation (RAG)** with a personalized memory layer and a robust crisis escalation protocol to provide a safe, supportive, and human-like experience.
+**MyAlly** is a state-of-the-art, empathy-aware mental health support chatbot designed specifically for students. It utilizes **Retrieval-Augmented Generation (RAG)** to provide grounded, verified support combined with a personalized memory layer and a robust crisis escalation protocol.
 
 ---
 
@@ -24,8 +24,9 @@ pinned: false
 - **Persistent History:** Remembers past conversations and maintains chat history for personalized, human-like interactions.
 - **Cross-Deployment Persistence:** Uses Google Firestore to ensure your profile and chats stay saved forever.
 
-### 3. 📚 RAG-Based Responses
-- **Verified Guidance:** Uses ChromaDB with verified resources to provide accurate and reliable guidance.
+### 3. 📚 RAG-Powered Intelligence
+- **Retrieval-Augmented Generation (RAG):** Uses ChromaDB with verified resources to provide accurate and reliable guidance.
+- **Verified Guidance:** Ensures all advice is grounded in high-quality mental health documentation.
 
 ### 4. 🛡️ Real-time Crisis Escalation
 - **Risk Detection:** Detects high-risk intent and sends instant alerts to counselors via the web portal.
@@ -41,7 +42,7 @@ pinned: false
 - **Frontend:** React + Vite, CSS3 (Vanilla), React Router
 - **AI/LLM:** HuggingFace Inference API (Qwen 2.5 7B Instruct)
 - **Primary Database:** Google Firestore (Persistence)
-- **Vector DB:** ChromaDB (RAG & Memory)
+- **RAG / Vector DB:** ChromaDB (Persistence & Memory)
 - **Auth:** Firebase Authentication
 
 ---
