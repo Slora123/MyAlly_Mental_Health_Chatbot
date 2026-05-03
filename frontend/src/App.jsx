@@ -184,6 +184,14 @@ function ChatApp({ authToken, setAuthToken }) {
               }));
               setMessages(loadedMessages);
             }
+          } else {
+             const errorData = await res.json().catch(() => null);
+             console.error("Failed to load chat history. Server returned:", errorData || res.statusText);
+             setMessages([{
+               role: 'bot',
+               text: `Initialization Error: ${errorData?.detail || res.statusText}`,
+               time: new Date().toISOString()
+             }]);
           }
         } catch (err) {
           console.error('Failed to load chat history:', err);
@@ -225,13 +233,20 @@ function ChatApp({ authToken, setAuthToken }) {
       }
 
       const data = await response.json();
-      if (data.session_id && data.session_id !== sessionId) {
+      if (response.ok && data.session_id && data.session_id !== sessionId) {
         setSessionId(data.session_id);
+      }
+
+      let botText = data.reply;
+      if (!response.ok) {
+        botText = `Server Error: ${data.detail || response.statusText}`;
+      } else if (!botText) {
+        botText = "I'm sorry, I encountered an error. Please try again.";
       }
 
       const botMsg = {
         role: 'bot',
-        text: data.reply || "I'm sorry, I encountered an error. Please try again.",
+        text: botText,
         time: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, botMsg]);
